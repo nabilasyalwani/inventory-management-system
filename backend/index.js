@@ -1,8 +1,17 @@
 const express = require("express");
+const mysql = require("./db/mysql");
+const routes = require("./routes/index");
 const cors = require("cors");
 
 const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+mysql.connect();
+
+app.use("/api", routes);
 
 // Middleware
 app.use(
@@ -20,6 +29,6 @@ app.get("/api/hello", (req, res) => {
   res.json({ message: "Welcome to the API!" });
 });
 
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`Server is running at http://localhost:${PORT}`);
 });
