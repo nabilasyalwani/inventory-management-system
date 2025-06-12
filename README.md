@@ -16,11 +16,15 @@ cd backend
 npm install
 npm start
 ```
+Server akan berjalan pada localhost port 3000
 
-3. Masuk pada folder frontend
+3. Buka terminal baru 
+
+4. Masuk pada folder frontend
 
 ```
-cd ../frontend
+cd inventory-management-system/frontend
 npm install
 npm run dev
 ```
+Client akan berjalan pada localhost port 5173
