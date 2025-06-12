@@ -29,6 +29,19 @@ app.get("/api/hello", (req, res) => {
   res.json({ message: "Welcome to the API!" });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
+});
+
+process.on("SIGINT", () => {
+  console.log("Closing database connection...");
+  mysql.end((err) => {
+    if (err) {
+      console.error("Error closing the database connection:", err.stack);
+    }
+    server.close(() => {
+      console.log("Server closed.");
+      process.exit(0);
+    });
+  });
 });
