@@ -16,7 +16,7 @@
   npm install
   npm start
   ```
-  Server akan berjalan pada localhost port 3000
+  - Server akan berjalan pada localhost port 3000
 
 3. Buka terminal baru 
 
@@ -27,4 +27,4 @@
   npm install
   npm run dev
   ```
-  Client akan berjalan pada localhost port 5173
+  - Client akan berjalan pada localhost port 5173
