@@ -9,10 +9,6 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-mysql.connect();
-
-app.use("/api", routes);
-
 // Middleware
 app.use(
   cors({
@@ -20,12 +16,16 @@ app.use(
   })
 );
 
+mysql.connect();
+
+app.use("/api", routes);
+
 // Route
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-app.get("/api/hello", (req, res) => {
+app.get("/hello", (req, res) => {
   res.json({ message: "Welcome to the API!" });
 });
 

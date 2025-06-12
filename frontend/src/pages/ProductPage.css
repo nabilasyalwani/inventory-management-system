@@ -1,0 +1,98 @@
+.product-page {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 32px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.product-page h1 {
+  margin-bottom: 8px;
+  color: #2d3748;
+  font-size: 2.2rem;
+}
+
+.product-page p {
+  color: #4a5568;
+  margin-bottom: 24px;
+}
+
+.product-page table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #f9f9f9;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.product-page th,
+.product-page td {
+  padding: 14px 12px;
+  text-align: left;
+}
+
+.product-page thead th {
+  background: #3182ce;
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.product-page tbody tr {
+  transition: background 0.2s;
+}
+
+.product-page tbody tr:hover {
+  background: #e6f0fa;
+}
+
+.product-page td {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.product-page tfoot td {
+  background: #f1f5f9;
+  text-align: center;
+  padding: 18px 0;
+}
+
+.product-page button {
+  background: #3182ce;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  margin-right: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.product-page button:hover {
+  background: #225ea8;
+}
+
+.product-page button:last-child {
+  margin-right: 0;
+}
+
+@media (max-width: 700px) {
+  .product-page {
+    padding: 12px;
+  }
+  .product-page table,
+  .product-page thead,
+  .product-page tbody,
+  .product-page th,
+  .product-page td,
+  .product-page tr {
+    display: block;
+  }
+  .product-page th,
+  .product-page td {
+    padding: 10px 6px;
+  }
+}

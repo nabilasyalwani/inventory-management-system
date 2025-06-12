@@ -2,6 +2,7 @@ import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
+import { Link } from "react-router-dom";
 
 function App() {
   const [message, setMessage] = useState({});
@@ -16,7 +17,7 @@ function App() {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/api/hello");
+      const response = await fetch("http://localhost:3000/hello");
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -42,7 +43,6 @@ function App() {
       {message && message.message && counter % 2 !== 0 && (
         <p>{message.message}</p>
       )}
-
       <div className="card">
         <button onClick={() => callHelloApi()}>Call API</button>
         <p>
@@ -52,6 +52,7 @@ function App() {
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more
       </p>
+      <Link to="/productPage">Click to product page</Link>
     </>
   );
 }
