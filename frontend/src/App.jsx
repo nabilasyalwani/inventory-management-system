@@ -53,6 +53,10 @@ function App() {
         Click on the Vite and React logos to learn more
       </p>
       <Link to="/productPage">Click to product page</Link>
+      <Link to="/dashboard">Go to Menu Page</Link>
+      <Link to="/barangMasuk">Go to Barang Masuk Page</Link>
+      <Link to="/barangKeluar">Go to Barang Keluar Page</Link>
+      <Link to="/service">Go to Service Page</Link>
     </>
   );
 }

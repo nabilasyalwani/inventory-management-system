@@ -105,10 +105,63 @@ const deleteItem = (req, res) => {
   );
 };
 
+const getServiceDetailService = (req, res) => {
+  connection.query(
+    `SELECT ds.id_detail_service, ds.id_service, s.jenis_service, ds.nama_barang, s.keterangan, s.tanggal_masuk, ds.tanggal_selesai, ds.durasi_service, ds.biaya_service, s.status FROM service AS s
+    INNER JOIN detail_service AS ds ON ds.id_service = s.id_service`,
+    (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({
+        message: "Service and Detail Service fetched successfully",
+        data: results,
+      });
+    }
+  );
+};
+
+const getTransaksiBarangMasuk = (req, res) => {
+  connection.query(
+    `SELECT dbm.id_detail_masuk, bm.id_petugas, bm.id_supplier, bm.tanggal_masuk, b.id_barang, b.id_kategori, b.harga_beli, dbm.jumlah, b.harga_beli * dbm.jumlah AS total_harga FROM detail_barang_masuk AS dbm 
+    INNER JOIN barang_masuk AS bm ON dbm.id_barang_masuk = bm.id_barang_masuk
+    INNER JOIN barang AS b ON b.id_barang = dbm.id_barang`,
+    (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({
+        message: "Transaksi Barang Masuk fetched successfully",
+        data: results,
+      });
+    }
+  );
+};
+
+const getTransaksiBarangKeluar = (req, res) => {
+  connection.query(
+    `SELECT dbk.id_detail_keluar, bk.id_petugas, bk.id_pelanggan, bk.tanggal_keluar, b.id_barang, b.id_kategori, b.harga_jual, dbk.jumlah, b.harga_jual * dbk.jumlah AS total_harga FROM detail_barang_keluar AS dbk 
+    INNER JOIN barang_keluar AS bk ON dbk.id_barang_keluar = bk.id_barang_keluar
+    INNER JOIN barang AS b ON b.id_barang = dbk.id_barang`,
+    (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({
+        message: "Transaksi Barang Keluar fetched successfully",
+        data: results,
+      });
+    }
+  );
+};
+
 module.exports = {
   createItem,
   updateItem,
   deleteItem,
   getAllItems,
   getItemById,
+  getServiceDetailService,
+  getTransaksiBarangMasuk,
+  getTransaksiBarangKeluar,
 };

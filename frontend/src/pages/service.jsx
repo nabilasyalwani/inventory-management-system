@@ -1,0 +1,344 @@
+import React, { useState, useEffect } from "react";
+import "./Service.css";
+
+const TABLE_HEADER = [
+  "ID Detail Service",
+  "ID Service",
+  "Jenis Service",
+  "Nama Barang",
+  "Keterangan",
+  "Tanggal Mulai",
+  "Tanggal Selesai",
+  "Durasi Service",
+  "Biaya Service",
+  "Status",
+];
+
+const JENIS_SERVICE_OPTIONS = [
+  "Laptop",
+  "Smartphone",
+  "Audio",
+  "Display",
+  "Aksesoris",
+  "Komponen PC",
+  "Jaringan",
+  "Penyimpanan Data",
+  "Peralatan Rumah Tangga",
+  "Keamanan & Smart Phone",
+];
+
+export default function Service() {
+  const [service, setService] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [formData, setFormData] = useState({
+    id_detail_service: "",
+    id_service: "",
+    jenis_service: "",
+    nama_barang: "",
+    keterangan: "",
+    tanggal_mulai: "",
+    status: "proses",
+  });
+  const [updateData, setUpdateData] = useState({
+    id_detail_service: "",
+    id_service: "",
+    jenis_service: "",
+    nama_barang: "",
+    keterangan: "",
+    tanggal_mulai: "",
+    tanggal_selesai: "",
+    status: "Proses",
+  });
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch(
+          "http://localhost:3000/api/join/service_detail_service"
+        );
+        if (!res.ok) throw new Error("Failed to fetch products");
+        const data = await res.json();
+        console.log("Fetched products:", data.data);
+        setService(data.data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  const handleAddService = () => {
+    const newEntry = {
+      ...formData,
+      tanggal_selesai: "",
+      durasi_service: "0.00",
+      biaya_service: "0.00",
+    };
+    setService([...service, newEntry]);
+    setFormData({
+      id_detail_service: "",
+      id_service: "",
+      jenis_service: "",
+      nama_barang: "",
+      keterangan: "",
+      tanggal_mulai: "",
+      status: "Proses",
+    });
+    setShowModal(false);
+  };
+
+  const handleUpdateService = () => {
+    const updatedList = service.map((item) =>
+      item.id_detail_service === updateData.id_detail_service
+        ? updateData
+        : item
+    );
+    setService(updatedList);
+    setShowUpdateModal(false);
+  };
+
+  const handleDelete = (id) => {
+    const filtered = service.filter((item) => item.id_detail_service !== id);
+    setService(filtered);
+  };
+
+  const isFormValid = Object.values(formData).every(
+    (value) => value.trim() !== ""
+  );
+  const isUpdateFormValid = Object.values(updateData).every(
+    (value) => value.trim() !== ""
+  );
+
+  return (
+    <div className="product-page">
+      <h1>Service Toko "Jaya Abadi"</h1>
+      <p>
+        This is the service transaction page where you can view and manage
+        service transactions.
+      </p>
+
+      <div className="search-bar">
+        <p>Search by:</p>
+        <input type="text" placeholder="ID Service" />
+        <input type="text" placeholder="ID Detail Service" />
+        <input type="text" placeholder="Nama Barang" />
+        <input type="date" placeholder="Tanggal" />
+        <button className="search-button">Search</button>
+        <button className="add-button" onClick={() => setShowModal(true)}>
+          + Add
+        </button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            {TABLE_HEADER.map((header) => (
+              <th key={header}>{header}</th>
+            ))}
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {service.map((item) => (
+            <tr key={item.id_detail_service}>
+              <td>{item.id_detail_service}</td>
+              <td>{item.id_service}</td>
+              <td>{item.jenis_service}</td>
+              <td>{item.nama_barang}</td>
+              <td>{item.keterangan}</td>
+              <td>{item.tanggal_mulai}</td>
+              <td>{item.tanggal_selesai}</td>
+              <td>{item.durasi_service}</td>
+              <td>{item.biaya_service}</td>
+              <td>{item.status}</td>
+              <td>
+                <button
+                  onClick={() => {
+                    setUpdateData(item);
+                    setShowUpdateModal(true);
+                  }}>
+                  Update
+                </button>
+                <button
+                  onClick={() => handleDelete(item.id_detail_service)}
+                  style={{ marginLeft: "6px", backgroundColor: "#e53e3e" }}>
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>Tambah Barang Service</h2>
+            <div className="form-group">
+              <label>ID Detail Service:</label>
+              <input
+                type="text"
+                placeholder="DSV001"
+                value={formData.id_detail_service || ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    id_detail_service: e.target.value,
+                  })
+                }
+              />
+              <label>ID Service:</label>
+              <input
+                type="text"
+                placeholder="SVC001"
+                value={formData.id_service || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, id_service: e.target.value })
+                }
+              />
+              <label>Jenis Service:</label>
+              <select
+                value={formData.jenis_service || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, jenis_service: e.target.value })
+                }>
+                <option value="">Pilih Jenis Service</option>
+                {JENIS_SERVICE_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              <label>Nama Barang:</label>
+              <input
+                type="text"
+                value={formData.nama_barang || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, nama_barang: e.target.value })
+                }
+              />
+              <label>Keterangan:</label>
+              <input
+                type="text"
+                value={formData.keterangan || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, keterangan: e.target.value })
+                }
+              />
+              <label>Tanggal Mulai:</label>
+              <input
+                type="date"
+                value={formData.tanggal_mulai || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, tanggal_mulai: e.target.value })
+                }
+              />
+            </div>
+            <div className="modal-buttons">
+              <button onClick={() => setShowModal(false)}>Batal</button>
+              <button onClick={handleAddService} disabled={!isFormValid}>
+                Selesai
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showUpdateModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>Update Barang Service</h2>
+            <div className="form-group">
+              <label>ID Detail Service:</label>
+              <input
+                type="text"
+                placeholder="DSV001"
+                value={updateData.id_detail_service}
+                onChange={(e) =>
+                  setUpdateData({
+                    ...updateData,
+                    id_detail_service: e.target.value,
+                  })
+                }
+                disabled
+              />
+              <label>ID Service:</label>
+              <input
+                type="text"
+                placeholder="SVC001"
+                value={updateData.id_service}
+                onChange={(e) =>
+                  setUpdateData({ ...updateData, id_service: e.target.value })
+                }
+              />
+              <label>Jenis Service:</label>
+              <select
+                value={updateData.jenis_service}
+                onChange={(e) =>
+                  setUpdateData({
+                    ...updateData,
+                    jenis_service: e.target.value,
+                  })
+                }>
+                <option value="">Pilih Jenis Service</option>
+                {JENIS_SERVICE_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              <label>Nama Barang:</label>
+              <input
+                type="text"
+                value={updateData.nama_barang}
+                onChange={(e) =>
+                  setUpdateData({ ...updateData, nama_barang: e.target.value })
+                }
+              />
+              <label>Keterangan:</label>
+              <input
+                type="text"
+                value={updateData.keterangan}
+                onChange={(e) =>
+                  setUpdateData({ ...updateData, keterangan: e.target.value })
+                }
+              />
+              <label>Tanggal Mulai:</label>
+              <input
+                type="date"
+                value={updateData.tanggal_mulai}
+                onChange={(e) =>
+                  setUpdateData({
+                    ...updateData,
+                    tanggal_mulai: e.target.value,
+                  })
+                }
+              />
+              <label>Tanggal Selesai:</label>
+              <input
+                type="date"
+                value={updateData.tanggal_selesai}
+                onChange={(e) =>
+                  setUpdateData({
+                    ...updateData,
+                    tanggal_selesai: e.target.value,
+                  })
+                }
+              />
+            </div>
+            <div className="modal-buttons">
+              <button onClick={() => setShowUpdateModal(false)}>Batal</button>
+              <button
+                onClick={handleUpdateService}
+                disabled={!isUpdateFormValid}>
+                Selesai
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
