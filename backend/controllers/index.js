@@ -113,46 +113,148 @@ const getServiceDetailService = (req, res) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
-      res.json({
-        message: "Service and Detail Service fetched successfully",
-        data: results,
-      });
+      res.json(results);
     }
   );
 };
 
 const getTransaksiBarangMasuk = (req, res) => {
   connection.query(
-    `SELECT dbm.id_detail_masuk, bm.id_petugas, bm.id_supplier, bm.tanggal_masuk, b.id_barang, b.id_kategori, b.harga_beli, dbm.jumlah, b.harga_beli * dbm.jumlah AS total_harga FROM detail_barang_masuk AS dbm 
+    `SELECT bm.id_barang_masuk, bm.id_petugas, bm.id_supplier, bm.tanggal_masuk, b.id_barang, b.id_kategori, b.harga_beli, dbm.jumlah, b.harga_beli * dbm.jumlah AS total_harga FROM detail_barang_masuk AS dbm 
     INNER JOIN barang_masuk AS bm ON dbm.id_barang_masuk = bm.id_barang_masuk
     INNER JOIN barang AS b ON b.id_barang = dbm.id_barang`,
     (err, results) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
-      res.json({
-        message: "Transaksi Barang Masuk fetched successfully",
-        data: results,
-      });
+      res.json(results);
     }
   );
 };
 
 const getTransaksiBarangKeluar = (req, res) => {
   connection.query(
-    `SELECT dbk.id_detail_keluar, bk.id_petugas, bk.id_pelanggan, bk.tanggal_keluar, b.id_barang, b.id_kategori, b.harga_jual, dbk.jumlah, b.harga_jual * dbk.jumlah AS total_harga FROM detail_barang_keluar AS dbk 
+    `SELECT bk.id_barang_keluar, bk.id_petugas, bk.id_pelanggan, bk.tanggal_keluar, b.id_barang, b.id_kategori, b.harga_jual, dbk.jumlah, b.harga_jual * dbk.jumlah AS total_harga FROM detail_barang_keluar AS dbk 
     INNER JOIN barang_keluar AS bk ON dbk.id_barang_keluar = bk.id_barang_keluar
     INNER JOIN barang AS b ON b.id_barang = dbk.id_barang`,
     (err, results) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
-      res.json({
-        message: "Transaksi Barang Keluar fetched successfully",
-        data: results,
-      });
+      res.json(results);
     }
   );
+};
+
+// const findItemByAttr = (req, res) => {
+//   const tableName = req.params.tableName;
+//   const queryParams = req.query;
+
+//   if (!tableName || Object.keys(queryParams).length === 0) {
+//     return res
+//       .status(400)
+//       .json({ error: "Table name and at least one attribute are required" });
+//   }
+
+//   if (tableName === "transaksi_barang_masuk") {
+//     connection.query(
+//       `SELECT bm.id_barang_masuk, bm.id_petugas, bm.id_supplier, bm.tanggal_masuk, b.id_barang, b.id_kategori, b.harga_beli, dbm.jumlah, b.harga_beli * dbm.jumlah AS total_harga FROM detail_barang_masuk AS dbm
+//     INNER JOIN barang_masuk AS bm ON dbm.id_barang_masuk = bm.id_barang_masuk
+//     INNER JOIN barang AS b ON b.id_barang = dbm.id_barang` +
+//         ` WHERE ${attr1} = ?`,
+//       [value],
+//       (err, results) => {
+//         if (err) {
+//           return res.status(500).json({ error: err.message });
+//         }
+//         res.json(results);
+//       }
+//     );
+//   } else if (tableName === "transaksi_barang_keluar") {
+//     connection.query(
+//       `SELECT bk.id_barang_keluar, bk.id_petugas, bk.id_pelanggan, bk.tanggal_keluar, b.id_barang, b.id_kategori, b.harga_jual, dbk.jumlah, b.harga_jual * dbk.jumlah AS total_harga FROM detail_barang_keluar AS dbk
+//     INNER JOIN barang_keluar AS bk ON dbk.id_barang_keluar = bk.id_barang_keluar
+//     INNER JOIN barang AS b ON b.id_barang = dbk.id_barang` +
+//         ` WHERE ${attr1} = ?`,
+//       [value],
+//       (err, results) => {
+//         if (err) {
+//           return res.status(500).json({ error: err.message });
+//         }
+//         res.json(results);
+//       }
+//     );
+//   } else if (tableName === "service_detail_service") {
+//     connection.query(
+//       `SELECT ds.id_detail_service, ds.id_service, s.jenis_service, ds.nama_barang, s.keterangan, s.tanggal_masuk, ds.tanggal_selesai, ds.durasi_service, ds.biaya_service, s.status FROM service AS s
+//     INNER JOIN detail_service AS ds ON ds.id_service = s.id_service` +
+//         ` WHERE ${attr1} = ?`,
+//       [value],
+//       (err, results) => {
+//         if (err) {
+//           return res.status(500).json({ error: err.message });
+//         }
+//         res.json(results);
+//       }
+//     );
+//   }
+// };
+
+const findItemByAttr = (req, res) => {
+  const tableName = req.params.tableName;
+  const queryParams = req.query;
+
+  if (!tableName || Object.keys(queryParams).length === 0) {
+    return res
+      .status(400)
+      .json({ error: "Table name and at least one attribute are required" });
+  }
+
+  // WHERE clause dan values array
+  const whereClauses = [];
+  const values = [];
+  for (const [key, value] of Object.entries(queryParams)) {
+    if (
+      key.includes("tanggal_masuk") ||
+      key.includes("tanggal_selesai") ||
+      key.includes("tanggal_keluar")
+    ) {
+      // value = `%${value}%`;
+      whereClauses.push(`${key} LIKE ?`);
+      values.push(`%${value}%`);
+    } else {
+      whereClauses.push(`${key} = ?`);
+      values.push(value);
+    }
+  }
+  const whereString = whereClauses.length
+    ? " WHERE " + whereClauses.join(" AND ")
+    : "";
+
+  let baseQuery = "";
+  if (tableName === "transaksi_barang_masuk") {
+    baseQuery = `SELECT bm.id_barang_masuk, bm.id_petugas, bm.id_supplier, bm.tanggal_masuk, b.id_barang, b.id_kategori, b.harga_beli, dbm.jumlah, b.harga_beli * dbm.jumlah AS total_harga FROM detail_barang_masuk AS dbm 
+      INNER JOIN barang_masuk AS bm ON dbm.id_barang_masuk = bm.id_barang_masuk
+      INNER JOIN barang AS b ON b.id_barang = dbm.id_barang`;
+  } else if (tableName === "transaksi_barang_keluar") {
+    baseQuery = `SELECT bk.id_barang_keluar, bk.id_petugas, bk.id_pelanggan, bk.tanggal_keluar, b.id_barang, b.id_kategori, b.harga_jual, dbk.jumlah, b.harga_jual * dbk.jumlah AS total_harga FROM detail_barang_keluar AS dbk 
+      INNER JOIN barang_keluar AS bk ON dbk.id_barang_keluar = bk.id_barang_keluar
+      INNER JOIN barang AS b ON b.id_barang = dbk.id_barang`;
+  } else if (tableName === "service_detail_service") {
+    baseQuery = `SELECT ds.id_detail_service, ds.id_service, s.jenis_service, ds.nama_barang, s.keterangan, s.tanggal_masuk, ds.tanggal_selesai, ds.durasi_service, ds.biaya_service, s.status FROM service AS s
+      INNER JOIN detail_service AS ds ON ds.id_service = s.id_service`;
+  } else {
+    return res.status(400).json({ error: "Invalid table name" });
+  }
+
+  const finalQuery = baseQuery + whereString;
+
+  connection.query(finalQuery, values, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
+  });
 };
 
 module.exports = {
@@ -164,4 +266,5 @@ module.exports = {
   getServiceDetailService,
   getTransaksiBarangMasuk,
   getTransaksiBarangKeluar,
+  findItemByAttr,
 };

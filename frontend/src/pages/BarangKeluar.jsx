@@ -16,6 +16,10 @@ const TABLE_HEADER = [
 export default function BarangKeluar() {
   const [barang, setBarang] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [searchIDBarang, setSearchIDBarang] = useState("");
+  const [searchIDTransaksi, setSearchIDTransaksi] = useState("");
+  const [searchIDKategori, setSearchIDKategori] = useState("");
+  const [searchTanggal, setSearchTanggal] = useState("");
   const [formData, setFormData] = useState({
     id_transaksi: "",
     id_petugas: "",
@@ -25,25 +29,25 @@ export default function BarangKeluar() {
     jumlah: "",
   });
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch(
-          "http://localhost:3000/api/join/transaksi_barang_keluar"
-        ); //tabel combined?
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost:3000/api/join/transaksi_barang_keluar"
+      ); //tabel combined?
 
-        if (!res.ok) {
-          throw new Error("Failed to fetch products");
-        }
-
-        const data = await res.json();
-        setBarang(data.data);
-        console.log("Fetched products:", data);
-      } catch (error) {
-        console.error("Error fetching products:", error);
+      if (!res.ok) {
+        throw new Error("Failed to fetch products");
       }
-    };
 
+      const data = await res.json();
+      setBarang(data);
+      console.log("Fetched products:", data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  useEffect(() => {
     fetchProducts();
   }, []);
 
@@ -54,6 +58,45 @@ export default function BarangKeluar() {
       ...formData,
       [name]: value,
     });
+  };
+
+  const handleSearch = async () => {
+    let searchString = "";
+    if (searchIDBarang) {
+      searchString += `b.id_barang=${searchIDBarang}&`;
+    }
+    if (searchIDTransaksi) {
+      searchString += `bk.id_barang_keluar=${searchIDTransaksi}&`;
+    }
+    if (searchIDKategori) {
+      searchString += `b.id_kategori=${searchIDKategori}&`;
+    }
+    if (searchTanggal) {
+      searchString += `bk.tanggal_keluar=${searchTanggal}&`;
+    }
+
+    console.log(searchTanggal);
+
+    if (searchString === "") {
+      console.warn("No search criteria provided, fetching all products.");
+      fetchProducts();
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        "http://localhost:3000/api/join/find/transaksi_barang_keluar?" +
+          searchString
+      );
+      if (!res.ok) {
+        throw new Error("Failed to fetch products");
+      }
+      const data = await res.json();
+      setBarang(data);
+      console.log("Fetched products:", data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
   };
 
   const handleAddService = async () => {
@@ -106,13 +149,30 @@ export default function BarangKeluar() {
         <input
           type="text"
           placeholder="ID Barang"
-          // value={searchTerm}
-          // onChange={(e) => setSearchTerm(e.target.value)}
+          value={searchIDBarang}
+          onChange={(e) => setSearchIDBarang(e.target.value)}
         />
-        <input type="text" placeholder="ID Transaksi" />
-        <input type="text" placeholder="ID Kategori" />
-        <input type="date" placeholder="Tanggal" />
-        <button className="search-button">Search</button>
+        <input
+          type="text"
+          placeholder="ID Transaksi"
+          value={searchIDTransaksi}
+          onChange={(e) => setSearchIDTransaksi(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="ID Kategori"
+          value={searchIDKategori}
+          onChange={(e) => setSearchIDKategori(e.target.value)}
+        />
+        <input
+          type="date"
+          placeholder="Tanggal"
+          value={searchTanggal}
+          onChange={(e) => setSearchTanggal(e.target.value)}
+        />
+        <button className="search-button" onClick={() => handleSearch()}>
+          Search
+        </button>
         <button className="add-button" onClick={() => setShowModal(true)}>
           + Add
         </button>
@@ -128,8 +188,8 @@ export default function BarangKeluar() {
         </thead>
         <tbody>
           {barang.map((item) => (
-            <tr key={item.id_detail_keluar}>
-              <td>{item.id_detail_keluar}</td>
+            <tr key={item.id_barang_keluar}>
+              <td>{item.id_barang_keluar}</td>
               <td>{item.id_petugas}</td>
               <td>{item.id_pelanggan}</td>
               <td>{formatDateTime(item.tanggal_keluar)}</td>

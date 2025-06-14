@@ -31,6 +31,10 @@ export default function Service() {
   const [service, setService] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [searchIDService, setSearchIDService] = useState("");
+  const [searchIDDetailService, setSearchIDDetailService] = useState("");
+  const [searchNamaBarang, setSearchNamaBarang] = useState("");
+  const [searchTanggal, setSearchTanggal] = useState("");
   const [formData, setFormData] = useState({
     id_detail_service: "",
     id_service: "",
@@ -51,23 +55,65 @@ export default function Service() {
     status: "Proses",
   });
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch(
-          "http://localhost:3000/api/join/service_detail_service"
-        );
-        if (!res.ok) throw new Error("Failed to fetch products");
-        const data = await res.json();
-        console.log("Fetched products:", data.data);
-        setService(data.data);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
-    };
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost:3000/api/join/service_detail_service"
+      );
+      if (!res.ok) throw new Error("Failed to fetch products");
+      const data = await res.json();
+      console.log("Fetched products:", data.data);
+      setService(data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
 
+  useEffect(() => {
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    console.log("Search criteria changed, fetching products...", searchTanggal);
+  }, [searchTanggal]);
+
+  const handleSearch = async () => {
+    let searchString = "";
+    if (searchIDService) {
+      searchString += `ds.id_service=${searchIDService}&`;
+    }
+    if (searchIDDetailService) {
+      searchString += `ds.id_detail_service=${searchIDDetailService}&`;
+    }
+    if (searchNamaBarang) {
+      searchString += `ds.nama_barang=${searchNamaBarang}&`;
+    }
+    if (searchTanggal) {
+      searchString += `ds.tanggal_selesai=${searchTanggal}&s.tanggal_masuk=${searchTanggal}&`;
+    }
+
+    if (searchString === "") {
+      console.warn("No search criteria provided, fetching all products.");
+      fetchProducts();
+      return;
+    }
+
+    const stringgg =
+      "http://localhost:3000/api/join/find/service_detail_service?" +
+      searchString;
+    console.log("Search URL:", stringgg);
+    try {
+      const res = await fetch(stringgg);
+      if (!res.ok) {
+        throw new Error("Failed to fetch products");
+      }
+      const data = await res.json();
+      setService(data);
+      console.log("Fetched products:", data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
 
   const handleAddService = () => {
     const newEntry = {
@@ -121,11 +167,33 @@ export default function Service() {
 
       <div className="search-bar">
         <p>Search by:</p>
-        <input type="text" placeholder="ID Service" />
-        <input type="text" placeholder="ID Detail Service" />
-        <input type="text" placeholder="Nama Barang" />
-        <input type="date" placeholder="Tanggal" />
-        <button className="search-button">Search</button>
+        <input
+          type="text"
+          placeholder="ID Service"
+          value={searchIDService}
+          onChange={(e) => setSearchIDService(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="ID Detail Service"
+          value={searchIDDetailService}
+          onChange={(e) => setSearchIDDetailService(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Nama Barang"
+          value={searchNamaBarang}
+          onChange={(e) => setSearchNamaBarang(e.target.value)}
+        />
+        <input
+          type="date"
+          placeholder="Tanggal"
+          value={searchTanggal}
+          onChange={(e) => setSearchTanggal(e.target.value)}
+        />
+        <button className="search-button" onClick={() => handleSearch()}>
+          Search
+        </button>
         <button className="add-button" onClick={() => setShowModal(true)}>
           + Add
         </button>

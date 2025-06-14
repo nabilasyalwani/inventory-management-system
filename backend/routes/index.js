@@ -10,6 +10,7 @@ const {
   getServiceDetailService,
   getTransaksiBarangMasuk,
   getTransaksiBarangKeluar,
+  findItemByAttr,
 } = require("../controllers/index");
 
 // API routes
@@ -19,6 +20,7 @@ router.delete("/:tableName/:id", deleteItem);
 router.get("/join/service_detail_service", getServiceDetailService);
 router.get("/join/transaksi_barang_masuk", getTransaksiBarangMasuk);
 router.get("/join/transaksi_barang_keluar", getTransaksiBarangKeluar);
+router.get("/join/find/:tableName", findItemByAttr);
 router.get("/:tableName", getAllItems);
 router.get("/:tableName/:id", getItemById);
 
