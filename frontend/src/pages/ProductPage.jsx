@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./productPage.css";
+import "./ProductPage.css";
 
 const TABLE_HEADER = [
   "Nama Barang",

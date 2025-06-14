@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./barangMasuk.css";
 
 const TABLE_HEADER = [
+  "ID Detail Transaksi", //id detail barang masuk
   "ID Transaksi", //id barang masuk
   "ID Petugas",
   "ID Supplier",
@@ -21,7 +22,8 @@ export default function ProductPage() {
   const [searchIDKategori, setSearchIDKategori] = useState("");
   const [searchTanggal, setSearchTanggal] = useState("");
   const [formData, setFormData] = useState({
-    id_transaksi: "",
+    id_detail_masuk: "",
+    id_barang_masuk: "",
     id_petugas: "",
     id_supplier: "",
     tanggal_masuk: "",
@@ -97,23 +99,30 @@ export default function ProductPage() {
     }
   };
 
-  const handleAddService = async () => {
+  const handleAddTransaksiMasuk = async () => {
+    console.log(formData);
     try {
-      const response = await fetch("http://localhost:3000/api/barang_masuk", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(
+        "http://localhost:3000/api/join/transaksi_barang_masuk",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
       if (!response.ok) {
         throw new Error("Failed to add transaction");
       }
       const newEntry = await response.json();
-      setBarang([...barang, newEntry]);
+      console.log("New entry added:", newEntry);
+      fetchProducts(); // Refresh
+      // setBarang([...barang, newEntry]);
       setShowModal(false);
       setFormData({
-        id_transaksi: "",
+        id_detail_masuk: "",
+        id_barang_masuk: "",
         id_petugas: "",
         id_supplier: "",
         tanggal_masuk: "",
@@ -187,6 +196,7 @@ export default function ProductPage() {
         <tbody>
           {barang.map((item) => (
             <tr key={item.id_barang_masuk}>
+              <td>{item.id_detail_masuk}</td>
               <td>{item.id_barang_masuk}</td>
               <td>{item.id_petugas}</td>
               <td>{item.id_supplier}</td>
@@ -221,11 +231,21 @@ export default function ProductPage() {
             <h2>Tambah Transaksi Barang Masuk</h2>
             <div className="form-group">
               <div>
+                <label>ID Detail Transaksi:</label>
+                <input
+                  type="text"
+                  name="id_detail_masuk"
+                  value={formData.id_detail_masuk}
+                  onChange={handleInputChange}
+                  placeholder="DBM001"
+                />
+              </div>
+              <div>
                 <label>ID Transaksi:</label>
                 <input
                   type="text"
-                  name="id_transaksi"
-                  value={formData.id_transaksi}
+                  name="id_barang_masuk"
+                  value={formData.id_barang_masuk}
                   onChange={handleInputChange}
                   placeholder="BMK001"
                 />
@@ -283,7 +303,7 @@ export default function ProductPage() {
             </div>
             <div className="modal-buttons">
               <button onClick={() => setShowModal(false)}>Batal</button>
-              <button onClick={handleAddService}>Selesai</button>
+              <button onClick={() => handleAddTransaksiMasuk()}>Selesai</button>
             </div>
           </div>
         </div>

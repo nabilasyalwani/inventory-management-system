@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./BarangMasuk.css";
 
 const TABLE_HEADER = [
+  "ID Detail Transaksi", //id detail barang masuk
   "ID Transaksi", //id barang masuk
   "ID Petugas",
   "ID pelanggan",
@@ -21,7 +22,8 @@ export default function BarangKeluar() {
   const [searchIDKategori, setSearchIDKategori] = useState("");
   const [searchTanggal, setSearchTanggal] = useState("");
   const [formData, setFormData] = useState({
-    id_transaksi: "",
+    id_detail_keluar: "",
+    id_barang_keluar: "",
     id_petugas: "",
     id_pelanggan: "",
     tanggal_keluar: "",
@@ -99,23 +101,29 @@ export default function BarangKeluar() {
     }
   };
 
-  const handleAddService = async () => {
+  const handleAddTransaksiKeluar = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/barang_keluar", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(
+        "http://localhost:3000/api/join/transaksi_barang_keluar",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
       if (!response.ok) {
         throw new Error("Failed to add transaction");
       }
       const newEntry = await response.json();
-      setBarang([...barang, newEntry]);
+      console.log("New entry added:", newEntry);
+      fetchProducts(); // Refresh
+      // setBarang([...barang, newEntry]);
       setShowModal(false);
       setFormData({
-        id_transaksi: "",
+        id_detail_keluar: "",
+        id_barang_keluar: "",
         id_petugas: "",
         id_pelanggan: "",
         tanggal_keluar: "",
@@ -189,6 +197,7 @@ export default function BarangKeluar() {
         <tbody>
           {barang.map((item) => (
             <tr key={item.id_barang_keluar}>
+              <td>{item.id_detail_keluar}</td>
               <td>{item.id_barang_keluar}</td>
               <td>{item.id_petugas}</td>
               <td>{item.id_pelanggan}</td>
@@ -223,11 +232,21 @@ export default function BarangKeluar() {
             <h2>Tambah Transaksi Barang Keluar</h2>
             <div className="form-group">
               <div>
+                <label>ID Detail Transaksi:</label>
+                <input
+                  type="text"
+                  name="id_detail_keluar"
+                  value={formData.id_detail_keluar}
+                  onChange={handleInputChange}
+                  placeholder="DBK001"
+                />
+              </div>
+              <div>
                 <label>ID Transaksi:</label>
                 <input
                   type="text"
-                  name="id_transaksi"
-                  value={formData.id_transaksi}
+                  name="id_barang_keluar"
+                  value={formData.id_barang_keluar}
                   onChange={handleInputChange}
                   placeholder="BMK001"
                 />
@@ -256,8 +275,8 @@ export default function BarangKeluar() {
                 <label>Tanggal:</label>
                 <input
                   type="date"
-                  name="tanggal_masuk"
-                  value={formData.tanggal_masuk}
+                  name="tanggal_keluar"
+                  value={formData.tanggal_keluar}
                   onChange={handleInputChange}
                 />
               </div>
@@ -285,7 +304,7 @@ export default function BarangKeluar() {
             </div>
             <div className="modal-buttons">
               <button onClick={() => setShowModal(false)}>Batal</button>
-              <button onClick={handleAddService}>Selesai</button>
+              <button onClick={handleAddTransaksiKeluar}>Selesai</button>
             </div>
           </div>
         </div>

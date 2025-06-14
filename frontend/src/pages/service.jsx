@@ -4,6 +4,8 @@ import "./Service.css";
 const TABLE_HEADER = [
   "ID Detail Service",
   "ID Service",
+  "ID Pelanggan",
+  "ID Petugas",
   "Jenis Service",
   "Nama Barang",
   "Keterangan",
@@ -35,24 +37,17 @@ export default function Service() {
   const [searchIDDetailService, setSearchIDDetailService] = useState("");
   const [searchNamaBarang, setSearchNamaBarang] = useState("");
   const [searchTanggal, setSearchTanggal] = useState("");
+  const [updateData, setUpdateData] = useState({});
   const [formData, setFormData] = useState({
     id_detail_service: "",
+    id_pelanggan: "",
+    id_petugas: "",
     id_service: "",
     jenis_service: "",
     nama_barang: "",
     keterangan: "",
-    tanggal_mulai: "",
+    tanggal_masuk: "",
     status: "proses",
-  });
-  const [updateData, setUpdateData] = useState({
-    id_detail_service: "",
-    id_service: "",
-    jenis_service: "",
-    nama_barang: "",
-    keterangan: "",
-    tanggal_mulai: "",
-    tanggal_selesai: "",
-    status: "Proses",
   });
 
   const fetchProducts = async () => {
@@ -76,6 +71,10 @@ export default function Service() {
   useEffect(() => {
     console.log("Search criteria changed, fetching products...", searchTanggal);
   }, [searchTanggal]);
+
+  useEffect(() => {
+    console.log("Update Data:", updateData);
+  }, [updateData]);
 
   const handleSearch = async () => {
     let searchString = "";
@@ -115,24 +114,40 @@ export default function Service() {
     }
   };
 
-  const handleAddService = () => {
-    const newEntry = {
-      ...formData,
-      tanggal_selesai: "",
-      durasi_service: "0.00",
-      biaya_service: "0.00",
-    };
-    setService([...service, newEntry]);
-    setFormData({
-      id_detail_service: "",
-      id_service: "",
-      jenis_service: "",
-      nama_barang: "",
-      keterangan: "",
-      tanggal_mulai: "",
-      status: "Proses",
-    });
-    setShowModal(false);
+  const handleAddService = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/join/service_detail_service",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to add transaction");
+      }
+      const newEntry = await response.json();
+      console.log("New entry added:", newEntry);
+      fetchProducts(); // Refresh
+      // setBarang([...barang, newEntry]);
+      setShowModal(false);
+      setFormData({
+        id_detail_service: "",
+        id_pelanggan: "",
+        id_petugas: "",
+        id_service: "",
+        jenis_service: "",
+        nama_barang: "",
+        keterangan: "",
+        tanggal_masuk: "",
+        status: "proses",
+      });
+    } catch (error) {
+      console.error("Error adding transaction:", error);
+    }
   };
 
   const handleUpdateService = () => {
@@ -145,17 +160,37 @@ export default function Service() {
     setShowUpdateModal(false);
   };
 
-  const handleDelete = (id) => {
-    const filtered = service.filter((item) => item.id_detail_service !== id);
-    setService(filtered);
+  const handleDelete = async (id) => {
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/join/service_detail_service",
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id_detail_service: id }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to add transaction");
+      }
+      const deleteItem = await response.json();
+      console.log("Item Deleted:", deleteItem);
+      fetchProducts(); // Refresh
+      // setBarang([...barang, newEntry]);
+      setShowModal(false);
+    } catch (error) {
+      console.error("Error adding transaction:", error);
+    }
   };
 
-  const isFormValid = Object.values(formData).every(
-    (value) => value.trim() !== ""
-  );
-  const isUpdateFormValid = Object.values(updateData).every(
-    (value) => value.trim() !== ""
-  );
+  // const isFormValid = Object.values(formData).every(
+  //   (value) => value.trim() !== ""
+  // );
+  // const isUpdateFormValid = Object.values(updateData).every(
+  //   (value) => value.trim() !== ""
+  // );
 
   return (
     <div className="product-page">
@@ -213,10 +248,12 @@ export default function Service() {
             <tr key={item.id_detail_service}>
               <td>{item.id_detail_service}</td>
               <td>{item.id_service}</td>
+              <td>{item.id_pelanggan}</td>
+              <td>{item.id_petugas}</td>
               <td>{item.jenis_service}</td>
               <td>{item.nama_barang}</td>
               <td>{item.keterangan}</td>
-              <td>{item.tanggal_mulai}</td>
+              <td>{item.tanggal_masuk}</td>
               <td>{item.tanggal_selesai}</td>
               <td>{item.durasi_service}</td>
               <td>{item.biaya_service}</td>
@@ -224,8 +261,9 @@ export default function Service() {
               <td>
                 <button
                   onClick={() => {
-                    setUpdateData(item);
                     setShowUpdateModal(true);
+                    setUpdateData(item);
+                    // console.log("Selected Item for Update:", item);
                   }}>
                   Update
                 </button>
@@ -266,6 +304,24 @@ export default function Service() {
                   setFormData({ ...formData, id_service: e.target.value })
                 }
               />
+              <label>ID Pelanggan:</label>
+              <input
+                type="text"
+                placeholder="PLG001"
+                value={formData.id_pelanggan || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, id_pelanggan: e.target.value })
+                }
+              />
+              <label>ID Petugas:</label>
+              <input
+                type="text"
+                placeholder="PTG001"
+                value={formData.id_petugas || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, id_petugas: e.target.value })
+                }
+              />
               <label>Jenis Service:</label>
               <select
                 value={formData.jenis_service || ""}
@@ -298,15 +354,18 @@ export default function Service() {
               <label>Tanggal Mulai:</label>
               <input
                 type="date"
-                value={formData.tanggal_mulai || ""}
+                value={formData.tanggal_masuk || ""}
                 onChange={(e) =>
-                  setFormData({ ...formData, tanggal_mulai: e.target.value })
+                  setFormData({ ...formData, tanggal_masuk: e.target.value })
                 }
               />
             </div>
             <div className="modal-buttons">
               <button onClick={() => setShowModal(false)}>Batal</button>
-              <button onClick={handleAddService} disabled={!isFormValid}>
+              <button
+                onClick={handleAddService}
+                // disabled={!isFormValid}
+              >
                 Selesai
               </button>
             </div>
@@ -323,7 +382,7 @@ export default function Service() {
               <input
                 type="text"
                 placeholder="DSV001"
-                value={updateData.id_detail_service}
+                value={updateData.id_detail_service || ""}
                 onChange={(e) =>
                   setUpdateData({
                     ...updateData,
@@ -336,14 +395,14 @@ export default function Service() {
               <input
                 type="text"
                 placeholder="SVC001"
-                value={updateData.id_service}
+                value={updateData.id_service || ""}
                 onChange={(e) =>
                   setUpdateData({ ...updateData, id_service: e.target.value })
                 }
               />
               <label>Jenis Service:</label>
               <select
-                value={updateData.jenis_service}
+                value={updateData.jenis_service || ""}
                 onChange={(e) =>
                   setUpdateData({
                     ...updateData,
@@ -360,7 +419,7 @@ export default function Service() {
               <label>Nama Barang:</label>
               <input
                 type="text"
-                value={updateData.nama_barang}
+                value={updateData.nama_barang || ""}
                 onChange={(e) =>
                   setUpdateData({ ...updateData, nama_barang: e.target.value })
                 }
@@ -368,7 +427,7 @@ export default function Service() {
               <label>Keterangan:</label>
               <input
                 type="text"
-                value={updateData.keterangan}
+                value={updateData.keterangan || ""}
                 onChange={(e) =>
                   setUpdateData({ ...updateData, keterangan: e.target.value })
                 }
@@ -376,18 +435,18 @@ export default function Service() {
               <label>Tanggal Mulai:</label>
               <input
                 type="date"
-                value={updateData.tanggal_mulai}
+                value={updateData.tanggal_masuk || ""}
                 onChange={(e) =>
                   setUpdateData({
                     ...updateData,
-                    tanggal_mulai: e.target.value,
+                    tanggal_masuk: e.target.value,
                   })
                 }
               />
               <label>Tanggal Selesai:</label>
               <input
                 type="date"
-                value={updateData.tanggal_selesai}
+                value={updateData.tanggal_selesai || ""}
                 onChange={(e) =>
                   setUpdateData({
                     ...updateData,
@@ -400,7 +459,8 @@ export default function Service() {
               <button onClick={() => setShowUpdateModal(false)}>Batal</button>
               <button
                 onClick={handleUpdateService}
-                disabled={!isUpdateFormValid}>
+                // disabled={!isUpdateFormValid}
+              >
                 Selesai
               </button>
             </div>
