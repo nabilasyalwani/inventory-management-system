@@ -88,7 +88,7 @@ export default function Service() {
       searchString += `ds.nama_barang=${searchNamaBarang}&`;
     }
     if (searchTanggal) {
-      searchString += `ds.tanggal_selesai=${searchTanggal}&s.tanggal_masuk=${searchTanggal}&`;
+      searchString += `s.tanggal_masuk=${searchTanggal}&`;
     }
 
     if (searchString === "") {
@@ -307,6 +307,7 @@ export default function Service() {
               <label>ID Detail Service:</label>
               <input
                 type="text"
+                name="id_detail_service"
                 placeholder="DSV001"
                 value={formData.id_detail_service || ""}
                 onChange={(e) =>
@@ -319,6 +320,7 @@ export default function Service() {
               <label>ID Service:</label>
               <input
                 type="text"
+                name="id_service"
                 placeholder="SVC001"
                 value={formData.id_service || ""}
                 onChange={(e) =>
@@ -328,6 +330,7 @@ export default function Service() {
               <label>ID Pelanggan:</label>
               <input
                 type="text"
+                name="id_pelanggan"
                 placeholder="PLG001"
                 value={formData.id_pelanggan || ""}
                 onChange={(e) =>
@@ -337,6 +340,7 @@ export default function Service() {
               <label>ID Petugas:</label>
               <input
                 type="text"
+                name="id_petugas"
                 placeholder="PTG001"
                 value={formData.id_petugas || ""}
                 onChange={(e) =>
@@ -345,6 +349,7 @@ export default function Service() {
               />
               <label>Jenis Service:</label>
               <select
+                name="jenis_service"
                 value={formData.jenis_service || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, jenis_service: e.target.value })
@@ -359,6 +364,7 @@ export default function Service() {
               <label>Nama Barang:</label>
               <input
                 type="text"
+                name="nama_barang"
                 value={formData.nama_barang || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, nama_barang: e.target.value })
@@ -367,6 +373,7 @@ export default function Service() {
               <label>Keterangan:</label>
               <input
                 type="text"
+                name="keterangan"
                 value={formData.keterangan || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, keterangan: e.target.value })
@@ -375,6 +382,7 @@ export default function Service() {
               <label>Tanggal Mulai:</label>
               <input
                 type="date"
+                name="tanggal_masuk"
                 value={formData.tanggal_masuk || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, tanggal_masuk: e.target.value })
@@ -410,7 +418,7 @@ export default function Service() {
                     id_detail_service: e.target.value,
                   })
                 }
-                disabled
+                disabled="true"
               />
               <label>ID Service:</label>
               <input
@@ -456,13 +464,18 @@ export default function Service() {
               <label>Tanggal Mulai:</label>
               <input
                 type="date"
-                value={updateData.tanggal_masuk || ""}
+                value={
+                  updateData.tanggal_masuk
+                    ? updateData.tanggal_masuk.slice(0, 10)
+                    : ""
+                }
                 onChange={(e) =>
                   setUpdateData({
                     ...updateData,
                     tanggal_masuk: e.target.value,
                   })
                 }
+                disabled="true"
               />
               <label>Tanggal Selesai:</label>
               <input

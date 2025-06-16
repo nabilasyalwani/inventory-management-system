@@ -27,7 +27,7 @@ const JENIS_SERVICE_OPTIONS = [
 
 export default function ProductPage() {
   const [barang, setBarang] = useState([]);
-  // const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [searchStok, setSearchStok] = useState("");
   const [searchIDBarang, setSearchIDBarang] = useState("");
@@ -40,7 +40,16 @@ export default function ProductPage() {
     satuan: "",
     harga_beli: "",
     harga_jual: "",
-    j: "",
+  });
+
+  const [formData, setFormData] = useState({
+    id_barang: "",
+    nama_barang: "",
+    stok: "",
+    satuan: "",
+    harga_beli: "",
+    harga_jual: "",
+    jenis_barang: "",
   });
 
   useEffect(() => {
@@ -63,12 +72,6 @@ export default function ProductPage() {
     setUpdateData(item);
     setShowUpdateModal(true);
   };
-
-  // const handleUpdateService = () => {
-  //   console.log("Update submitted:", updateData);
-  //   setShowUpdateModal(false);
-  //   // TODO: Tambahkan logika PUT/POST ke backend
-  // };
 
   const handleSearch = async () => {
     let searchString = "";
@@ -106,28 +109,70 @@ export default function ProductPage() {
     }
   };
 
-  // const handleDelete = async (id) => {
-  //   console.log("Deleting:", id);
-  //   try {
-  //     const response = await fetch("http://localhost:3000/api/join/barang", {
-  //       method: "DELETE",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({ id_barang: id }),
-  //     });
-  //     if (!response.ok) {
-  //       throw new Error("Failed to delete transaction");
-  //     }
-  //     const deleteItem = await response.json();
-  //     console.log("Item Deleted:", deleteItem);
-  //     fetchProducts(); // Refresh
-  //     // setBarang([...barang, newEntry]);
-  //     // setShowModal(false);
-  //   } catch (error) {
-  //     console.error("Error adding transaction:", error);
-  //   }
-  // };
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "jenis_barang") {
+      console.log("Handling search for jenis_barang:", value);
+      handleSearchIDBarang(value);
+    }
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  const handleSearchIDBarang = async (kategori) => {
+    console.log("Searching for kategori:", kategori);
+    try {
+      const res = await fetch(
+        `http://localhost:3000/api/join/find/kategori?jenis_barang=${kategori}`
+      );
+      if (!res.ok) {
+        throw new Error("Failed to fetch products");
+      }
+      const data = await res.json();
+      const id_kategori =
+        Array.isArray(data) && data.length > 0 ? data[0].id_kategori : "";
+      setFormData((prevData) => ({
+        ...prevData,
+        id_kategori: id_kategori,
+      }));
+      console.log("Fetched products:", data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  const handleAddProduk = async () => {
+    console.log("Adding new product:", formData);
+    try {
+      const response = await fetch("http://localhost:3000/api/join/barang", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to add transaction");
+      }
+      const newEntry = await response.json();
+      console.log("New entry added:", newEntry);
+      fetchProducts(); // Refresh
+      setShowModal(false);
+      setFormData({
+        id_barang: "",
+        nama_barang: "",
+        stok: "",
+        satuan: "",
+        harga_beli: "",
+        harga_jual: "",
+        id_kategori: "",
+      });
+    } catch (error) {
+      console.error("Error adding transaction:", error);
+    }
+  };
 
   const handleUpdateBarang = async () => {
     try {
@@ -199,7 +244,9 @@ export default function ProductPage() {
         <button className="search-button" onClick={() => handleSearch()}>
           Search
         </button>
-        <button className="add-button">+ Add</button>
+        <button className="add-button" onClick={() => setShowModal(true)}>
+          + Add
+        </button>
       </div>
 
       <table>
@@ -222,20 +269,86 @@ export default function ProductPage() {
               <td>{item.id_kategori}</td>
               <td>
                 <button onClick={() => handleUpdateClick(item)}>Update</button>
-                {/* <button
-                  onClick={() => handleDelete(item.id_barang)}
-                  style={{
-                    marginLeft: "6px",
-                    backgroundColor: "#e53e3e",
-                    color: "white",
-                  }}>
-                  Delete
-                </button> */}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {/* Modal Tambah */}
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>Tambah Barang</h2>
+            <div className="form-group">
+              <label>ID Barang:</label>
+              <input
+                type="text"
+                name="id_barang"
+                placeholder="BRG0XX"
+                value={formData.id_barang}
+                onChange={handleInputChange}
+              />
+              <label>Nama Barang:</label>
+              <input
+                type="text"
+                name="nama_barang"
+                value={formData.nama_barang}
+                onChange={handleInputChange}
+                placeholder="Apple Watch"
+              />
+              <label>Stok:</label>
+              <input
+                type="text"
+                name="stok"
+                value={formData.stok}
+                onChange={handleInputChange}
+                placeholder="XX"
+              />
+              <label>Satuan:</label>
+              <input
+                type="text"
+                name="satuan"
+                placeholder="pcs"
+                value={formData.satuan}
+                onChange={handleInputChange}
+              />
+              <label>Harga Beli:</label>
+              <input
+                type="text"
+                name="harga_beli"
+                placeholder="10000.00"
+                value={formData.harga_beli}
+                onChange={handleInputChange}
+              />
+              <label>Harga Jual:</label>
+              <input
+                type="text"
+                name="harga_jual"
+                placeholder="10000.00"
+                value={formData.harga_jual}
+                onChange={handleInputChange}
+              />
+              <label>Kategori:</label>
+              <select
+                name="jenis_barang"
+                value={formData.jenis_barang}
+                onChange={handleInputChange}>
+                <option value="">-- Pilih Kategori --</option>
+                {JENIS_SERVICE_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="modal-buttons">
+              <button onClick={() => setShowModal(false)}>Batal</button>
+              <button onClick={handleAddProduk}>Selesai</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showUpdateModal && (
         <div className="modal-overlay">
@@ -289,20 +402,6 @@ export default function ProductPage() {
                   setUpdateData({ ...updateData, harga_jual: e.target.value })
                 }
               />
-
-              {/* <label>Jenis Barang:</label>
-              <select
-                value={updateData.id_kategori}
-                onChange={(e) =>
-                  setUpdateData({ ...updateData, id_kategori: e.target.value })
-                }>
-                <option value="">Laptop</option>
-                {JENIS_SERVICE_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select> */}
 
               <div className="modal-buttons">
                 <button onClick={() => setShowUpdateModal(false)}>Batal</button>

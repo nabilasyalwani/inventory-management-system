@@ -104,6 +104,17 @@ const createItemInJoinTable = (req, res) => {
       data.id_service,
       data.nama_barang,
     ];
+  } else if (tableName === "barang") {
+    baseQuery = `INSERT INTO ${tableName} (id_barang, nama_barang, stok, satuan, harga_beli, harga_jual, id_kategori) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    values = [
+      data.id_barang,
+      data.nama_barang,
+      data.stok,
+      data.satuan,
+      data.harga_beli,
+      data.harga_jual,
+      data.id_kategori,
+    ];
   } else {
     return res.status(400).json({ error: "Invalid table name" });
   }
@@ -170,7 +181,7 @@ const updateItemInJoinTable = (req, res) => {
       data.id_detail_keluar,
     ];
   } else if (tableName === "service_detail_service") {
-    baseQuery = `CALL transaksi_service(?, ?, ?)`;
+    baseQuery = `CALL transaksi_service(?, ?, ?);`;
     values = [data.id_service, data.nama_barang, data.tanggal_selesai];
   } else if (tableName === "barang") {
     baseQuery = `UPDATE ${tableName} SET ? WHERE id_${tableName} = ?`;
@@ -347,7 +358,8 @@ const findItemByAttr = (req, res) => {
   } else if (
     tableName === "barang" ||
     tableName === "supplier" ||
-    tableName === "pelanggan"
+    tableName === "pelanggan" ||
+    tableName === "kategori"
   ) {
     baseQuery = `SELECT * FROM ${tableName}`;
   } else {
