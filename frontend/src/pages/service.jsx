@@ -92,7 +92,7 @@ export default function Service() {
     }
 
     if (searchString === "") {
-      console.warn("No search criteria provided, fetching all products.");
+      console.log("No search criteria provided, fetching all products.");
       fetchProducts();
       return;
     }
@@ -150,14 +150,35 @@ export default function Service() {
     }
   };
 
-  const handleUpdateService = () => {
-    const updatedList = service.map((item) =>
-      item.id_detail_service === updateData.id_detail_service
-        ? updateData
-        : item
-    );
-    setService(updatedList);
-    setShowUpdateModal(false);
+  const handleUpdateService = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/join/service_detail_service",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updateData),
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to update transaction");
+      }
+      const updatedItem = await response.json();
+      console.log("Item Updated:", updatedItem);
+      fetchProducts(); // Refresh
+      setService((prev) =>
+        prev.map((item) =>
+          item.id_detail_service === updatedItem.id_detail_service
+            ? updatedItem
+            : item
+        )
+      );
+      setShowUpdateModal(false);
+    } catch (error) {
+      console.error("Error updating transaction:", error);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -185,12 +206,12 @@ export default function Service() {
     }
   };
 
-  // const isFormValid = Object.values(formData).every(
-  //   (value) => value.trim() !== ""
-  // );
-  // const isUpdateFormValid = Object.values(updateData).every(
-  //   (value) => value.trim() !== ""
-  // );
+  function formatDateTime(dateStr) {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "";
+    return date.toLocaleDateString("id-ID");
+  }
 
   return (
     <div className="product-page">
@@ -253,8 +274,8 @@ export default function Service() {
               <td>{item.jenis_service}</td>
               <td>{item.nama_barang}</td>
               <td>{item.keterangan}</td>
-              <td>{item.tanggal_masuk}</td>
-              <td>{item.tanggal_selesai}</td>
+              <td>{formatDateTime(item.tanggal_masuk)}</td>
+              <td>{formatDateTime(item.tanggal_selesai)}</td>
               <td>{item.durasi_service}</td>
               <td>{item.biaya_service}</td>
               <td>{item.status}</td>

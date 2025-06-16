@@ -2,16 +2,17 @@ import React, { useState, useEffect } from "react";
 import "./barangMasuk.css";
 
 const TABLE_HEADER = [
-  "ID Detail Transaksi", //id detail barang masuk
   "ID Transaksi", //id barang masuk
+  "ID Detail Transaksi", //id detail barang masuk
   "ID Petugas",
   "ID Supplier",
   "Tanggal",
-  "ID Barang", //dari tabel barang
-  "ID Kategori", //dari tabel barang
+  "Nama Barang", //dari tabel barang
+  "Kategori", //dari tabel barang
   "Harga Beli/item", //dari tabel barang
   "Jumlah", //dari tabel detail_barang_masuk
   "Total Harga", // harga * jumlah
+  "Aksi",
 ];
 
 export default function ProductPage() {
@@ -21,14 +22,16 @@ export default function ProductPage() {
   const [searchIDTransaksi, setSearchIDTransaksi] = useState("");
   const [searchIDKategori, setSearchIDKategori] = useState("");
   const [searchTanggal, setSearchTanggal] = useState("");
+  const [totalPengeluaran, setTotalPengeluaran] = useState(0);
   const [formData, setFormData] = useState({
-    id_detail_masuk: "",
     id_barang_masuk: "",
+    id_detail_masuk: "",
     id_petugas: "",
     id_supplier: "",
     tanggal_masuk: "",
-    id_barang: "",
+    nama_barang: "",
     jumlah: "",
+    id_barang: "",
   });
 
   const fetchProducts = async () => {
@@ -42,7 +45,9 @@ export default function ProductPage() {
       }
 
       const data = await res.json();
-      setBarang(data);
+      setBarang(data[0]);
+      setTotalPengeluaran(data[1][0].grand_total || 0);
+      // console.log("Total Pengeluaran:", data[1][0].grand_total);
       console.log("Fetched products:", data);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -56,29 +61,54 @@ export default function ProductPage() {
   //
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    if (name === "nama_barang") {
+      handleSearchIDBarang(value);
+    }
     setFormData({
       ...formData,
       [name]: value,
     });
   };
 
+  const handleSearchIDBarang = async (barang) => {
+    console.log("Searching for barang:", barang);
+    try {
+      const res = await fetch(
+        `http://localhost:3000/api/join/find/barang?nama_barang=${barang}`
+      );
+      if (!res.ok) {
+        throw new Error("Failed to fetch products");
+      }
+      const data = await res.json();
+      const id_barang =
+        Array.isArray(data) && data.length > 0 ? data[0].id_barang : "";
+      setFormData((prevData) => ({
+        ...prevData,
+        id_barang: id_barang,
+      }));
+      console.log("Fetched products:", data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
   const handleSearch = async () => {
     let searchString = "";
     if (searchIDBarang) {
-      searchString += `b.id_barang=${searchIDBarang}&`;
+      searchString += `b.nama_barang=${searchIDBarang}&`;
     }
     if (searchIDTransaksi) {
       searchString += `bm.id_barang_masuk=${searchIDTransaksi}&`;
     }
     if (searchIDKategori) {
-      searchString += `b.id_kategori=${searchIDKategori}&`;
+      searchString += `k.jenis_barang=${searchIDKategori}&`;
     }
     if (searchTanggal) {
       searchString += `bm.tanggal_masuk=${searchTanggal}&`;
     }
 
     if (searchString === "") {
-      console.warn("No search criteria provided, fetching all products.");
+      console.log("No search criteria provided, fetching all products.");
       fetchProducts();
       return;
     }
@@ -92,7 +122,9 @@ export default function ProductPage() {
         throw new Error("Failed to fetch products");
       }
       const data = await res.json();
+      console.log("Search results:", data);
       setBarang(data);
+      setTotalPengeluaran(data.grand_total || data[0].grand_total || 0);
       console.log("Fetched products:", data);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -121,12 +153,12 @@ export default function ProductPage() {
       // setBarang([...barang, newEntry]);
       setShowModal(false);
       setFormData({
-        id_detail_masuk: "",
         id_barang_masuk: "",
+        id_detail_masuk: "",
         id_petugas: "",
         id_supplier: "",
         tanggal_masuk: "",
-        id_barang: "",
+        nama_barang: "",
         jumlah: "",
       });
     } catch (error) {
@@ -134,13 +166,37 @@ export default function ProductPage() {
     }
   };
 
-  const formatDateTime = (dateTime) => {
-    const date = new Date(dateTime);
-    const z = (n) => (n < 10 ? "0" : "") + n; // Menambahkan nol di depan jika perlu
-    return `${date.getFullYear()}-${z(date.getMonth() + 1)}-${z(
-      date.getDate()
-    )} ${z(date.getHours())}:${z(date.getMinutes())}:${z(date.getSeconds())}`;
+  const handleDelete = async (id) => {
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/join/transaksi_barang_masuk",
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id_detail_masuk: id }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to delete transaction");
+      }
+      const deleteItem = await response.json();
+      console.log("Item Deleted:", deleteItem);
+      fetchProducts(); // Refresh
+      // setBarang([...barang, newEntry]);
+      setShowModal(false);
+    } catch (error) {
+      console.error("Error adding transaction:", error);
+    }
   };
+
+  function formatDateTime(dateStr) {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "";
+    return date.toLocaleDateString("id-ID");
+  }
 
   return (
     <div className="product-page">
@@ -155,7 +211,7 @@ export default function ProductPage() {
         <p>Search by:</p>
         <input
           type="text"
-          placeholder="ID Barang"
+          placeholder="Nama Barang"
           value={searchIDBarang}
           onChange={(e) => setSearchIDBarang(e.target.value)}
         />
@@ -167,7 +223,7 @@ export default function ProductPage() {
         />
         <input
           type="text"
-          placeholder="ID Kategori"
+          placeholder="Kategori"
           value={searchIDKategori}
           onChange={(e) => setSearchIDKategori(e.target.value)}
         />
@@ -196,16 +252,23 @@ export default function ProductPage() {
         <tbody>
           {barang.map((item) => (
             <tr key={item.id_barang_masuk}>
-              <td>{item.id_detail_masuk}</td>
               <td>{item.id_barang_masuk}</td>
+              <td>{item.id_detail_masuk}</td>
               <td>{item.id_petugas}</td>
               <td>{item.id_supplier}</td>
               <td>{formatDateTime(item.tanggal_masuk)}</td>
-              <td>{item.id_barang}</td>
-              <td>{item.id_kategori}</td>
+              <td>{item.nama_barang}</td>
+              <td>{item.jenis_barang}</td>
               <td>{item.harga_beli}</td>
               <td>{item.jumlah}</td>
               <td>{item.harga_beli * item.jumlah}</td>
+              <td>
+                <button
+                  onClick={() => handleDelete(item.id_detail_masuk)}
+                  style={{ marginLeft: "6px", backgroundColor: "#e53e3e" }}>
+                  Delete
+                </button>
+              </td>
               {/* sesuai-in */}
             </tr>
           ))}
@@ -219,7 +282,7 @@ export default function ProductPage() {
                 fontWeight: "bold",
                 paddingRight: "50px",
               }}>
-              <p>Total Pengeluaran: Rp {/*perhitungan total*/}</p>
+              <p>Total Pengeluaran: Rp {totalPengeluaran}</p>
             </td>
           </tr>
         </tfoot>
@@ -231,16 +294,6 @@ export default function ProductPage() {
             <h2>Tambah Transaksi Barang Masuk</h2>
             <div className="form-group">
               <div>
-                <label>ID Detail Transaksi:</label>
-                <input
-                  type="text"
-                  name="id_detail_masuk"
-                  value={formData.id_detail_masuk}
-                  onChange={handleInputChange}
-                  placeholder="DBM001"
-                />
-              </div>
-              <div>
                 <label>ID Transaksi:</label>
                 <input
                   type="text"
@@ -248,6 +301,16 @@ export default function ProductPage() {
                   value={formData.id_barang_masuk}
                   onChange={handleInputChange}
                   placeholder="BMK001"
+                />
+              </div>
+              <div>
+                <label>ID Detail Transaksi:</label>
+                <input
+                  type="text"
+                  name="id_detail_masuk"
+                  value={formData.id_detail_masuk}
+                  onChange={handleInputChange}
+                  placeholder="DBM001"
                 />
               </div>
               <div>
@@ -275,18 +338,22 @@ export default function ProductPage() {
                 <input
                   type="date"
                   name="tanggal_masuk"
-                  value={formData.tanggal_masuk}
+                  value={
+                    formData.tanggal_masuk
+                      ? formData.tanggal_masuk.slice(0, 10)
+                      : ""
+                  }
                   onChange={handleInputChange}
                 />
               </div>
               <div>
-                <label>ID Barang:</label>
+                <label>Nama Barang:</label>
                 <input
                   type="text"
-                  name="id_barang"
-                  value={formData.id_barang}
+                  name="nama_barang"
+                  value={formData.nama_barang}
                   onChange={handleInputChange}
-                  placeholder="BRG001"
+                  placeholder="Iphone 14 Pro Max"
                 />
               </div>
               <div>

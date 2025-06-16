@@ -57,6 +57,8 @@ function App() {
       <Link to="/barangMasuk">Go to Barang Masuk Page</Link>
       <Link to="/barangKeluar">Go to Barang Keluar Page</Link>
       <Link to="/service">Go to Service Page</Link>
+      <Link to="/pelanggan">Go to Pelanggan Page</Link>
+      <Link to="/supplier">Go to Supplier Page</Link>
     </>
   );
 }

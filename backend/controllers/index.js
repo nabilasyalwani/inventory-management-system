@@ -139,6 +139,7 @@ const updateItem = (req, res) => {
 const updateItemInJoinTable = (req, res) => {
   const tableName = req.params.tableName;
   const data = req.body;
+  console.log("Data received for update:", data);
   let values = [];
   if (!tableName || Object.keys(data).length === 0) {
     return res.status(400).json({ error: "Table name and data are required" });
@@ -169,18 +170,11 @@ const updateItemInJoinTable = (req, res) => {
       data.id_detail_keluar,
     ];
   } else if (tableName === "service_detail_service") {
-    baseQuery = `UPDATE service SET id_pelanggan = ?, id_petugas = ?, jenis_service = ?, keterangan = ?, tanggal_masuk = ? WHERE id_service = ?;
-    UPDATE detail_service SET nama_barang = ? WHERE id_detail_service = ?`;
-    values = [
-      data.id_pelanggan,
-      data.id_petugas,
-      data.jenis_service,
-      data.keterangan,
-      data.tanggal_masuk,
-      data.id_service,
-      data.nama_barang,
-      data.id_detail_service,
-    ];
+    baseQuery = `CALL transaksi_service(?, ?, ?)`;
+    values = [data.id_service, data.nama_barang, data.tanggal_selesai];
+  } else if (tableName === "barang") {
+    baseQuery = `UPDATE ${tableName} SET ? WHERE id_${tableName} = ?`;
+    values = [data, data[`id_${tableName}`]];
   } else {
     return res.status(400).json({ error: "Invalid table name" });
   }
@@ -192,7 +186,7 @@ const updateItemInJoinTable = (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Item not found" });
     }
-    res.status(200).json({ message: "Item updated successfully" });
+    res.status(200).json({ message: "Item updated successfully", result });
   });
 };
 
@@ -242,6 +236,13 @@ const deleteItemInJoinTable = (req, res) => {
   } else if (tableName === "service_detail_service") {
     baseQuery = `DELETE FROM detail_service WHERE id_detail_service = ?`;
     values.push(data.id_detail_service);
+  } else if (
+    tableName === "barang" ||
+    tableName === "supplier" ||
+    tableName === "pelanggan"
+  ) {
+    baseQuery = `DELETE FROM ${tableName} WHERE id_${tableName} = ?`;
+    values.push(data[`id_${tableName}`]);
   } else {
     return res.status(400).json({ error: "Invalid table name" });
   }
@@ -264,13 +265,23 @@ const getJoinedTable = (req, res) => {
   }
   let baseQuery = "";
   if (tableName === "transaksi_barang_masuk") {
-    baseQuery = `SELECT dbm.id_detail_masuk, bm.id_barang_masuk, bm.id_petugas, bm.id_supplier, bm.tanggal_masuk, b.id_barang, b.id_kategori, b.harga_beli, dbm.jumlah, b.harga_beli * dbm.jumlah AS total_harga FROM detail_barang_masuk AS dbm 
+    baseQuery = `SELECT b.nama_barang, k.jenis_barang, dbm.id_detail_masuk, bm.id_barang_masuk, bm.id_petugas, bm.id_supplier, bm.tanggal_masuk, b.id_barang, b.id_kategori, b.harga_beli, dbm.jumlah, b.harga_beli * dbm.jumlah AS total_harga FROM detail_barang_masuk AS dbm 
       INNER JOIN barang_masuk AS bm ON dbm.id_barang_masuk = bm.id_barang_masuk
-      INNER JOIN barang AS b ON b.id_barang = dbm.id_barang`;
+      INNER JOIN barang AS b ON b.id_barang = dbm.id_barang
+      INNER JOIN kategori AS k ON b.id_kategori = k.id_kategori;
+      
+      SELECT SUM(b.harga_beli * dbm.jumlah) AS grand_total
+      FROM detail_barang_masuk AS dbm
+      INNER JOIN barang AS b ON b.id_barang = dbm.id_barang;`;
   } else if (tableName === "transaksi_barang_keluar") {
-    baseQuery = `SELECT dbk.id_detail_keluar, bk.id_barang_keluar, bk.id_petugas, bk.id_pelanggan, bk.tanggal_keluar, b.id_barang, b.id_kategori, b.harga_jual, dbk.jumlah, b.harga_jual * dbk.jumlah AS total_harga FROM detail_barang_keluar AS dbk 
+    baseQuery = `SELECT b.nama_barang, k.jenis_barang, dbk.id_detail_keluar, bk.id_barang_keluar, bk.id_petugas, bk.id_pelanggan, bk.tanggal_keluar, b.id_barang, b.id_kategori, b.harga_jual, dbk.jumlah, b.harga_jual * dbk.jumlah AS total_harga FROM detail_barang_keluar AS dbk 
       INNER JOIN barang_keluar AS bk ON dbk.id_barang_keluar = bk.id_barang_keluar
-      INNER JOIN barang AS b ON b.id_barang = dbk.id_barang`;
+      INNER JOIN barang AS b ON b.id_barang = dbk.id_barang
+      INNER JOIN kategori AS k ON b.id_kategori = k.id_kategori;
+      
+      SELECT SUM(b.harga_jual * dbk.jumlah) AS grand_total, SUM(HitungLabaItem(dbk.jumlah, b.harga_jual, b.harga_beli)) AS total_laba
+      FROM detail_barang_keluar AS dbk
+      INNER JOIN barang AS b ON b.id_barang = dbk.id_barang;`;
   } else if (tableName === "service_detail_service") {
     baseQuery = `SELECT ds.id_detail_service, ds.id_service, s.id_pelanggan, s.id_petugas, s.jenis_service, ds.nama_barang, s.keterangan, s.tanggal_masuk, ds.tanggal_selesai, ds.durasi_service, ds.biaya_service, s.status FROM service AS s
       INNER JOIN detail_service AS ds ON ds.id_service = s.id_service`;
@@ -299,16 +310,18 @@ const findItemByAttr = (req, res) => {
   const whereClauses = [];
   const values = [];
   for (const [key, value] of Object.entries(queryParams)) {
-    if (
-      key.includes("tanggal_masuk") ||
-      key.includes("tanggal_selesai") ||
-      key.includes("tanggal_keluar")
-    ) {
+    if (key.includes("stok")) {
+      const range = value.split("-");
+      if (range.length === 2) {
+        whereClauses.push(`${key} BETWEEN ? AND ?`);
+        values.push(...range.map(Number));
+      } else {
+        whereClauses.push(`${key} = ?`);
+        values.push(value);
+      }
+    } else {
       whereClauses.push(`${key} LIKE ?`);
       values.push(`%${value}%`);
-    } else {
-      whereClauses.push(`${key} = ?`);
-      values.push(value);
     }
   }
   const whereString = whereClauses.length
@@ -317,21 +330,31 @@ const findItemByAttr = (req, res) => {
 
   let baseQuery = "";
   if (tableName === "transaksi_barang_masuk") {
-    baseQuery = `SELECT dbm.id_detail_masuk, bm.id_barang_masuk, bm.id_petugas, bm.id_supplier, bm.tanggal_masuk, b.id_barang, b.id_kategori, b.harga_beli, dbm.jumlah, b.harga_beli * dbm.jumlah AS total_harga FROM detail_barang_masuk AS dbm 
+    baseQuery = `SELECT b.nama_barang, k.jenis_barang, dbm.id_detail_masuk, bm.id_barang_masuk, bm.id_petugas, bm.id_supplier, bm.tanggal_masuk, b.id_barang, b.id_kategori, b.harga_beli, dbm.jumlah, 
+      b.harga_beli * dbm.jumlah AS total_harga, SUM(b.harga_beli * dbm.jumlah) OVER () AS grand_total FROM detail_barang_masuk AS dbm 
       INNER JOIN barang_masuk AS bm ON dbm.id_barang_masuk = bm.id_barang_masuk
-      INNER JOIN barang AS b ON b.id_barang = dbm.id_barang`;
+      INNER JOIN barang AS b ON b.id_barang = dbm.id_barang
+      INNER JOIN kategori AS k ON b.id_kategori = k.id_kategori`;
   } else if (tableName === "transaksi_barang_keluar") {
-    baseQuery = `SELECT dbk.id_detail_keluar, bk.id_barang_keluar, bk.id_petugas, bk.id_pelanggan, bk.tanggal_keluar, b.id_barang, b.id_kategori, b.harga_jual, dbk.jumlah, b.harga_jual * dbk.jumlah AS total_harga FROM detail_barang_keluar AS dbk 
+    baseQuery = `SELECT b.nama_barang, k.jenis_barang, dbk.id_detail_keluar, bk.id_barang_keluar, bk.id_petugas, bk.id_pelanggan, bk.tanggal_keluar, b.id_barang, b.id_kategori, b.harga_jual, dbk.jumlah, 
+      b.harga_jual * dbk.jumlah AS total_harga, SUM(b.harga_jual * dbk.jumlah) OVER () AS grand_total, SUM(HitungLabaItem(dbk.jumlah, b.harga_jual, b.harga_beli)) OVER () AS total_laba FROM detail_barang_keluar AS dbk 
       INNER JOIN barang_keluar AS bk ON dbk.id_barang_keluar = bk.id_barang_keluar
-      INNER JOIN barang AS b ON b.id_barang = dbk.id_barang`;
+      INNER JOIN barang AS b ON b.id_barang = dbk.id_barang
+      INNER JOIN kategori AS k ON b.id_kategori = k.id_kategori`;
   } else if (tableName === "service_detail_service") {
     baseQuery = `SELECT ds.id_detail_service, ds.id_service, s.id_pelanggan, s.id_petugas, s.jenis_service, ds.nama_barang, s.keterangan, s.tanggal_masuk, ds.tanggal_selesai, ds.durasi_service, ds.biaya_service, s.status FROM service AS s
       INNER JOIN detail_service AS ds ON ds.id_service = s.id_service`;
+  } else if (
+    tableName === "barang" ||
+    tableName === "supplier" ||
+    tableName === "pelanggan"
+  ) {
+    baseQuery = `SELECT * FROM ${tableName}`;
   } else {
     return res.status(400).json({ error: "Invalid table name" });
   }
 
-  const finalQuery = baseQuery + whereString;
+  const finalQuery = baseQuery + whereString + ";";
 
   connection.query(finalQuery, values, (err, results) => {
     if (err) {
