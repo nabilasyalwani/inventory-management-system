@@ -1,0 +1,236 @@
+.container {
+  padding: 0;
+  margin: 0;
+  max-width: 100%;
+}
+
+.product-page {
+  padding: 0 150px; /* padding kiri-kanan */
+  max-width: 100%;
+  min-height: 100vh;
+  border-radius: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: #cae2f9;
+}
+
+.product-page h1 {
+  text-align: start;
+  font-size: 2rem;
+  font-weight: 600;
+  padding-top: 7rem;
+  color: #000000;
+}
+
+.product-page p {
+  color: #000000;
+  text-align: start;
+}
+
+.product-page table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #f9f9f9;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 10px 1px rgba(0, 0, 0, 0.1);
+}
+
+.product-page th,
+.product-page td {
+  padding: 5px 40px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  z-index: 10;
+}
+
+.product-page thead th.status-head {
+  text-align: center;
+}
+
+.product-page thead th {
+  background: #ffffff;
+  color: #000;
+  weight: 600;
+  font-weight: 600;
+  padding-top: 30px;
+  padding-bottom: 20px;
+}
+
+.product-page tbody tr {
+  transition: background 0.2s;
+  padding-bottom: 40px;
+}
+
+.product-page tbody tr:hover {
+  background: #e6f0fa;
+}
+
+.product-page td {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.product-page tfoot td {
+  background: #f1f5f9;
+  text-align: center;
+  padding-bottom: 20px;
+}
+
+.product-page table::after {
+  content: "";
+  display: block;
+  height: 24px;
+}
+
+.product-page button {
+  background: #3182ce;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  height: 45px;
+  padding: 0 16px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.product-page button:hover {
+  background: #225ea8;
+}
+
+.product-page button:last-child {
+  margin-right: 0;
+}
+
+.product-page td:last-child,
+.product-page th:last-child {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.product-page td button {
+  margin-bottom: 4px;
+}
+
+@media (max-width: 700px) {
+  .product-page {
+    padding: 12px;
+  }
+  .product-page table,
+  .product-page thead,
+  .product-page tbody,
+  .product-page th,
+  .product-page td,
+  .product-page tr {
+    display: block;
+  }
+  .product-page th,
+  .product-page td {
+    padding: 10px 6px;
+  }
+}
+
+.search-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.search-bar input {
+  width: 100%;
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin: 10px;
+}
+
+.search-bar input[type="date"] {
+  color: #4a5568;
+}
+
+.search-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  left: -15px; /* geser ke kiri */
+}
+
+.search-input .search-icon {
+  position: absolute;
+  left: 30px;
+  color: #888;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.search-input input {
+  padding-left: 50px; /* beri ruang untuk icon */
+  height: 45px;
+  border-radius: 30px;
+  border: 1px solid #cbd5e0;
+  font-size: 1rem;
+  background: #fff;
+  outline: none;
+  transition: border 0.2s;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.search-input input:focus {
+  border-color: #3182ce;
+  box-shadow: 0 0 10px 2px rgba(49, 130, 206, 0.3);
+}
+
+.product-page .add-button {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 20px;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.875rem;
+  width: 100%;
+}
+
+.aktif {
+  background-color: rgb(213, 252, 231);
+  border: 1px solid #2f855a;
+  color: #22543d;
+}
+
+.non-aktif {
+  background-color: rgb(253, 225, 225);
+  border: 1px solid #c53030;
+  color: rgb(179, 34, 34);
+}
+
+.status.aktif::before,
+.status.non-aktif::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+
+.status.aktif::before {
+  background: #38a169; /* hijau */
+}
+
+.status.non-aktif::before {
+  background: #e53e3e; /* merah */
+}
