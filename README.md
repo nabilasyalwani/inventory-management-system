@@ -5,7 +5,7 @@
 1. Clone Repo
   
   ```
-  git clone https://github.com/nabilasyalwani/inventory-management-system.git
+  git clone -b master https://github.com/nabilasyalwani/inventory-management-system.git
   cd inventory-management-system
   ```
 
