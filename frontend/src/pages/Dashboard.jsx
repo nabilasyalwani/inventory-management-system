@@ -2,10 +2,15 @@ import { Link } from "react-router-dom";
 import "./Dashboard.css";
 
 export default function Dashboard() {
+  const username = localStorage.getItem("user")
+    ? JSON.parse(localStorage.getItem("user")).nama_petugas.split(" ")[0]
+    : "User";
+
   return (
     <div id="dashboard-app">
       <div className="dashboard-wrapper">
         <div className="dashboard-text">
+          <h1 className="welcome-text">Hi, {username}...</h1>
           <h4>Welcome to Management</h4>
           <h1>
             Toko <span>“Jaya Abadi”</span>

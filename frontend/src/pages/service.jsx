@@ -1,51 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
-import "./Service.module.css";
-import { Search, SquarePen, Trash2 } from "lucide-react";
-
-const TABLE_HEADER = [
-  "Tanggal Masuk",
-  "Tanggal Selesai",
-  "Nama Barang",
-  "Jenis Service",
-  "Biaya Service",
-  "Status",
-];
-
-const JENIS_SERVICE_OPTIONS = [
-  "Laptop",
-  "Smartphone",
-  "Audio",
-  "Display",
-  "Aksesoris",
-  "Komponen PC",
-  "Jaringan",
-  "Penyimpanan Data",
-  "Peralatan Rumah Tangga",
-  "Keamanan & Smart Phone",
-];
-
-function SearchInput({
-  icon: Icon,
-  type,
-  value,
-  onChange,
-  placeholder,
-  onKeyDown,
-}) {
-  return (
-    <div className="search-input">
-      {Icon && <Icon size={20} className="search-icon" />}
-      <input
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        onKeyDown={onKeyDown}
-      />
-    </div>
-  );
-}
+import { Search, SquarePen, Trash2, CirclePlus } from "lucide-react";
+import {
+  TABLE_HEADER,
+  addServiceFields,
+  updateServiceFields,
+  EMPTY_FORM_DATA,
+} from "../data/ServiceFields";
+import {
+  fetchService,
+  addService,
+  updateService,
+  deleteService,
+  searchService,
+  searchIDKategori,
+  searchJenisBarangByID,
+} from "../api/service";
+import SearchInput from "../component/SearchInput";
+import styles from "./page.module.css";
 
 export default function Service() {
   const [service, setService] = useState([]);
@@ -54,165 +26,128 @@ export default function Service() {
   const [searchNamaBarang, setSearchNamaBarang] = useState("");
   const [searchTanggal, setSearchTanggal] = useState("");
   const [searchStatus, setSearchStatus] = useState("");
-  const [updateData, setUpdateData] = useState({});
-  const [formData, setFormData] = useState({
-    id_petugas: "",
-    id_kategori: "",
-    jenis_barang: "",
-    nama_barang: "",
-    tanggal_masuk: "",
-    tanggal_keluar: "",
-    keterangan: "",
-    status: "Proses",
-  });
+  const [updateData, setUpdateData] = useState(EMPTY_FORM_DATA);
+  const [formData, setFormData] = useState(EMPTY_FORM_DATA);
 
   useEffect(() => {
-    fetchProducts();
+    handleFetch();
+    setIDPetugas();
   }, []);
 
-  const fetchProducts = async () => {
+  const setIDPetugas = () => {
+    const id_petugas = localStorage.getItem("user")
+      ? JSON.parse(localStorage.getItem("user")).id_petugas
+      : "";
+    setFormData((prevData) => ({
+      ...prevData,
+      id_petugas: id_petugas,
+    }));
+  };
+
+  const handleFetch = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/service");
-      if (!res.ok) throw new Error("Failed to fetch products");
-      const data = await res.json();
+      const data = await fetchService();
       setService(data);
     } catch (error) {
-      console.error("Error fetching products:", error);
+      console.error(error);
     }
-  }; // --- Handle Input Change for Add Form ---
+  };
 
   const handleSearch = async () => {
-    let queryParams = [];
-    if (searchNamaBarang) queryParams.push(`nama_barang=${searchNamaBarang}`);
-    if (searchTanggal) queryParams.push(`tanggal_masuk=${searchTanggal}`);
-    if (searchStatus) queryParams.push(`status=${searchStatus}`);
+    let query = [];
+    if (searchNamaBarang) query.push(`nama_barang=${searchNamaBarang}`);
+    if (searchTanggal) query.push(`tanggal_masuk=${searchTanggal}`);
+    if (searchStatus) query.push(`status=${searchStatus}`);
 
-    const queryString = queryParams.join("&");
-    const url = queryString
-      ? `http://localhost:3000/api/join/find/service?${queryString}`
-      : "http://localhost:3000/api/join/find/service";
+    if (query.length === 0) return handleFetch();
+    const queryString = query.join("&");
 
     try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to fetch filtered data");
-      const data = await res.json();
+      const data = await searchService(queryString);
       setService(data);
     } catch (error) {
-      console.error("Error fetching filtered data:", error);
+      console.error(error);
     }
   };
 
   const handleAddService = async () => {
-    // Validasi: id_petugas dan id_kategori tidak boleh kosong
-    // if (!formData.id_petugas || !formData.id_kategori) {
-    //   alert("ID Petugas dan ID Kategori tidak boleh kosong!");
-    //   return;
-    // }
-    handleSearchIDKategoriByName(formData.nama_barang);
-    handleSearchJenisBarangByID(formData.id_kategori);
-    // Ensure id_kategori is set before sending
-    // if (!formData.id_petugas || !formData.id_kategori) {
-    //   alert("ID Petugas dan ID Kategori tidak boleh kosong!");
-    //   return;
-    // }
     try {
-      const response = await fetch("http://localhost:3000/api/join/service", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      if (!response.ok) throw new Error("Failed to add transaction");
-      await response.json();
-      fetchProducts();
+      await addService(formData);
+      handleFetch();
       setShowModal(false);
-      setFormData({
-        id_petugas: "",
-        id_kategori: "",
-        jenis_barang: "",
-        nama_barang: "",
-        tanggal_masuk: "",
-        tanggal_keluar: "",
-        keterangan: "",
-        status: "Proses",
-      });
+      setFormData(EMPTY_FORM_DATA);
     } catch (error) {
-      console.error("Error adding transaction:", error);
+      console.error(error);
     }
   };
 
   const handleUpdateService = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/join/service", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updateData),
-      });
-      if (!response.ok) throw new Error("Failed to update transaction");
-      await response.json();
-      fetchProducts();
+      await updateService(updateData);
+      handleFetch();
       setShowUpdateModal(false);
+      setUpdateData(EMPTY_FORM_DATA);
     } catch (error) {
-      console.error("Error updating transaction:", error);
+      console.error(error);
     }
   };
 
-  // Function to fetch id_kategori based on nama_barang
+  const handleDeleteService = async (id) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus service ini?")) {
+      try {
+        await deleteService(id);
+        handleFetch();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
   const handleSearchIDKategoriByName = async (namaBarang) => {
-    console.log("Searching for id_kategori by nama_barang:", namaBarang);
     try {
-      const res = await fetch(
-        `http://localhost:3000/api/join/find/barang?nama_barang=${namaBarang}`
-      );
-      if (!res.ok) throw new Error("Failed to fetch category ID");
-      const data = await res.json();
-      const id_kategori =
-        Array.isArray(data) && data.length > 0 ? data[0].id_kategori : "";
+      const data = await searchIDKategori(namaBarang);
+      handleSearchJenisBarangByID(data);
       setFormData((prevData) => ({
         ...prevData,
-        id_kategori: id_kategori,
+        id_kategori: data,
       }));
-      console.log("Fetched id_kategori:", id_kategori);
     } catch (error) {
-      console.error("Error fetching category ID:", error);
-      setFormData((prevData) => ({
-        ...prevData,
-        id_kategori: "", // Clear on error
-      }));
+      console.error(error);
     }
   };
 
   const handleSearchJenisBarangByID = async (id) => {
-    console.log("Searching for jenis_barnag by id:", id);
     try {
-      const res = await fetch(
-        `http://localhost:3000/api/join/find/kategori?id_kategori=${id}`
-      );
-      if (!res.ok) throw new Error("Failed to fetch category ID");
-      const data = await res.json();
-      const jenis_barang =
-        Array.isArray(data) && data.length > 0 ? data[0].nama_kategori : "";
+      const data = await searchJenisBarangByID(id);
       setFormData((prevData) => ({
         ...prevData,
-        jenis_barang: jenis_barang,
+        jenis_barang: data,
       }));
-      console.log("Fetched jenis_barang:", jenis_barang);
+      setUpdateData((prevData) => ({
+        ...prevData,
+        jenis_barang: data,
+      }));
     } catch (error) {
-      console.error("Error fetching category ID:", error);
-      setFormData((prevData) => ({
-        ...prevData,
-        jenis_barang: "", // Clear on error
-      }));
+      console.error(error);
     }
   };
-  const handleInputChange = (e) => {
+
+  const handleInputChange = (e, modal) => {
     const { name, value } = e.target;
+    if (modal === "update") {
+      setUpdateData({
+        ...updateData,
+        [name]: value,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
     if (name === "nama_barang") {
       handleSearchIDKategoriByName(value);
     }
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
   };
 
   function formatDate(dateStr) {
@@ -228,22 +163,17 @@ export default function Service() {
   }
 
   const handleSearchKeyDown = (e) => {
-    // e.preventDefault();
-    console.log("Key pressed:", e.key);
     if (e.key === "Enter") {
       handleSearch();
     }
   };
 
   return (
-    <div className="product-page">
+    <div className={styles["product-page"]}>
       <h1>Service</h1>
-      <p>
-        This is the service transaction page where you can view and manage
-        service transactions.
-      </p>
+      <p>Halaman ini menampilkan dan mengelola data service.</p>
 
-      <div className="search-bar">
+      <div className={styles["search-bar"]}>
         <SearchInput
           type="text"
           icon={Search}
@@ -255,7 +185,7 @@ export default function Service() {
         <SearchInput
           type="date"
           icon={Search}
-          value={setSearchTanggal}
+          value={searchTanggal}
           onChange={(e) => setSearchTanggal(e.target.value)}
           onKeyDown={handleSearchKeyDown}
           placeholder="mm/dd/yyyy"
@@ -268,44 +198,30 @@ export default function Service() {
           onKeyDown={handleSearchKeyDown}
           placeholder="Status"
         />
-        <button className="add-button add" onClick={() => setShowModal(true)}>
-          + Tambah Service
+        <button
+          className={styles["add-button"]}
+          onClick={() => setShowModal(true)}>
+          <CirclePlus size={20} />
+          Tambah
         </button>
       </div>
-      {/* 
-      <div className="search-bar">
-        <button className="search-button" onClick={handleSearch}>
-          Search
-        </button>
-        <input
-          type="text"
-          placeholder="Nama Barang"
-          value={searchNamaBarang}
-          onChange={(e) => setSearchNamaBarang(e.target.value)}
-        />
-        <input
-          type="date"
-          value={searchTanggal}
-          onChange={(e) => setSearchTanggal(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Status"
-          value={searchStatus}
-          onChange={(e) => setSearchStatus(e.target.value)}
-        />
-        <button className="add-button" onClick={() => setShowModal(true)}>
-          + Add Product
-        </button>
-      </div> */}
 
       <table>
         <thead>
           <tr>
             {TABLE_HEADER.map((header) => (
-              <th key={header}>{header}</th>
+              <th
+                key={header}
+                className={
+                  header === "Status"
+                    ? styles["status-head"]
+                    : header === "Biaya Service"
+                    ? styles["biaya-head"]
+                    : ""
+                }>
+                {header}
+              </th>
             ))}
-            <th>Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -315,8 +231,20 @@ export default function Service() {
               <td>{formatDate(item.tanggal_keluar)}</td>
               <td>{item.nama_barang}</td>
               <td>{item.jenis_barang}</td>
-              <td>{item.biaya_service}</td>
-              <td>{item.status}</td>
+              <td className={styles.biaya}>
+                {parseFloat(item.biaya_service).toLocaleString("id-ID")}
+              </td>
+              <td>
+                <div
+                  className={[
+                    styles.status,
+                    item.status === "Selesai"
+                      ? styles.aktif
+                      : styles["non-aktif"],
+                  ].join(" ")}>
+                  {item.status}
+                </div>
+              </td>
               <td>
                 <button
                   onClick={() => {
@@ -327,13 +255,13 @@ export default function Service() {
                     });
                     setShowUpdateModal(true);
                   }}>
-                  Update
+                  <SquarePen size={20} />
                 </button>
-                {/* <button
-                  onClick={() => handleDelete(item.id_service)}
+                <button
+                  onClick={() => handleDeleteService(item.id_service)}
                   style={{ marginLeft: "6px", backgroundColor: "#e53e3e" }}>
-                  Delete
-                </button> */}
+                  <Trash2 size={20} color="white" />
+                </button>
               </td>
             </tr>
           ))}
@@ -341,62 +269,26 @@ export default function Service() {
       </table>
 
       {/* Modal Tambah */}
-      <Modal
-        show={showModal}
-        onHide={() => setShowModal(false)}
-        dialogClassName="custom-modal">
-        <Modal.Header closeButton>
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton className="p-4 pb-3 m-2">
           <Modal.Title>Tambah Barang Service</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="p-4 pt-2 pb-2 m-2">
           <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>Tanggal Masuk</Form.Label>
-              <Form.Control
-                type="date"
-                value={formData.tanggal_masuk}
-                onChange={(e) =>
-                  setFormData({ ...formData, tanggal_masuk: e.target.value })
-                }
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Nama Barang</Form.Label>
-              <Form.Control
-                type="text"
-                name="nama_barang"
-                value={formData.nama_barang}
-                onChange={handleInputChange}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Jenis Service</Form.Label>
-              <Form.Select
-                value={formData.jenis_barang}
-                onChange={(e) =>
-                  setFormData({ ...formData, jenis_barang: e.target.value })
-                }>
-                {JENIS_SERVICE_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>ID Petugas</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="PTG001"
-                value={formData.id_petugas}
-                onChange={(e) =>
-                  setFormData({ ...formData, id_petugas: e.target.value })
-                }
-              />
-            </Form.Group>
+            {addServiceFields.map((field) => (
+              <Form.Group className="mb-3" key={field.name}>
+                <Form.Label>{field.label}</Form.Label>
+                <Form.Control
+                  name={field.name}
+                  type={field.type}
+                  value={formData[field.name]}
+                  onChange={(e) => handleInputChange(e, "add")}
+                />
+              </Form.Group>
+            ))}
           </Form>
         </Modal.Body>
-        <Modal.Footer>
+        <Modal.Footer className="p-3 m-2">
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Batal
           </Button>
@@ -410,62 +302,23 @@ export default function Service() {
       <Modal
         show={showUpdateModal}
         onHide={() => setShowUpdateModal(false)}
-        dialogClassName="custom-modal">
-        <Modal.Header closeButton>
+        centered>
+        <Modal.Header closeButton className="p-4 pb-3 m-2">
           <Modal.Title>Update Barang Service</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="p-4 pt-2 pb-2 m-2">
           <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>Tanggal Masuk</Form.Label>
-              <Form.Control
-                type="date"
-                value={updateData.tanggal_masuk || ""}
-                onChange={(e) =>
-                  setUpdateData({
-                    ...updateData,
-                    tanggal_masuk: e.target.value,
-                  })
-                }
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Nama Barang</Form.Label>
-              <Form.Control
-                type="text"
-                value={updateData.nama_barang || ""}
-                onChange={(e) =>
-                  setUpdateData({ ...updateData, nama_barang: e.target.value })
-                }
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Jenis Service</Form.Label>
-              <Form.Select
-                value={updateData.jenis_barang || ""}
-                onChange={(e) =>
-                  setUpdateData({ ...updateData, jenis_barang: e.target.value })
-                }>
-                {JENIS_SERVICE_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Tanggal Keluar</Form.Label>
-              <Form.Control
-                type="date"
-                value={updateData.tanggal_keluar || ""}
-                onChange={(e) =>
-                  setUpdateData({
-                    ...updateData,
-                    tanggal_keluar: e.target.value,
-                  })
-                }
-              />
-            </Form.Group>
+            {updateServiceFields.map((field) => (
+              <Form.Group className="mb-3" key={field.name}>
+                <Form.Label>{field.label}</Form.Label>
+                <Form.Control
+                  name={field.name}
+                  type={field.type}
+                  value={updateData[field.name] || ""}
+                  onChange={(e) => handleInputChange(e, "update")}
+                />
+              </Form.Group>
+            ))}
           </Form>
         </Modal.Body>
         <Modal.Footer>

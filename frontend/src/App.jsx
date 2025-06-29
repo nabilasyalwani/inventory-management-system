@@ -14,6 +14,7 @@ import LapTM from "./pages/LapTM";
 import LapTK from "./pages/LapTK";
 import Petugas from "./pages/Petugas";
 import DistributorPage from "./pages/Pelanggan";
+import Kategori from "./pages/Kategori";
 
 function App() {
   const location = useLocation();
@@ -36,6 +37,7 @@ function App() {
         <Route path="/lapTM" element={<LapTM />} />
         <Route path="/lapTK" element={<LapTK />} />
         <Route path="/petugas" element={<Petugas />} />
+        <Route path="/kategori" element={<Kategori />} />
       </Routes>
     </>
   );

@@ -9,23 +9,13 @@ import {
   addSupplier,
   updateSupplier,
 } from "../api/supplier";
-import { TABLE_HEADER, SupplierFields } from "../data/SupplierFields";
+import {
+  TABLE_HEADER,
+  SupplierFields,
+  EMPTY_FORM_DATA,
+  EMPTY_UPDATE_DATA,
+} from "../data/SupplierFields";
 import styles from "./page.module.css";
-
-const EMPTY_FORM_DATA = {
-  id_supplier: "",
-  nama_supplier: "",
-  alamat_supplier: "",
-  no_telp_supplier: "",
-};
-
-const EMPTY_UPDATE_DATA = {
-  id_supplier: "",
-  nama_supplier: "",
-  alamat_supplier: "",
-  no_telp_supplier: "",
-  status: "",
-};
 
 export default function SupplierPage() {
   const [supplier, setSupplier] = useState([]);

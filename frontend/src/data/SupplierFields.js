@@ -7,6 +7,21 @@ export const TABLE_HEADER = [
   "Aksi",
 ];
 
+export const EMPTY_FORM_DATA = {
+  id_supplier: "",
+  nama_supplier: "",
+  alamat_supplier: "",
+  no_telp_supplier: "",
+};
+
+export const EMPTY_UPDATE_DATA = {
+  id_supplier: "",
+  nama_supplier: "",
+  alamat_supplier: "",
+  no_telp_supplier: "",
+  status: "",
+};
+
 export const SupplierFields = [
   {
     label: "ID Supplier",

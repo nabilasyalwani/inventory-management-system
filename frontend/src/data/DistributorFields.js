@@ -7,6 +7,21 @@ export const TABLE_HEADER = [
   "Aksi",
 ];
 
+export const EMPTY_FORM_DATA = {
+  id_distributor: "",
+  nama_distributor: "",
+  alamat_distributor: "",
+  no_telp_distributor: "",
+};
+
+export const EMPTY_UPDATE_DATA = {
+  id_distributor: "",
+  nama_distributor: "",
+  alamat_distributor: "",
+  no_telp_distributor: "",
+  status: "",
+};
+
 export const DistributorFields = [
   {
     label: "ID Distributor",

@@ -1,53 +1,53 @@
-export async function fetchBarang() {
+export async function fetchKategori() {
   try {
-    const res = await fetch("http://localhost:3000/api/barang");
-    if (!res.ok) throw new Error("Failed to fetch barang");
+    const res = await fetch("http://localhost:3000/api/kategori");
+    if (!res.ok) throw new Error("Failed to fetch kategori");
     const data = await res.json();
-    console.log("Fetched barang:", data);
+    console.log("Fetched kategori:", data);
     return data;
   } catch (error) {
-    console.error("Error fetching barang:", error);
+    console.error("Error fetching kategori:", error);
   }
 }
 
-export async function addBarang(barangData) {
+export async function addKategori(kategoriData) {
   try {
-    const res = await fetch("http://localhost:3000/api/join/barang", {
+    const res = await fetch("http://localhost:3000/api/join/kategori", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(barangData),
+      body: JSON.stringify(kategoriData),
     });
-    if (!res.ok) throw new Error("Failed to add barang");
+    if (!res.ok) throw new Error("Failed to add kategori");
     const data = await res.json();
-    console.log("Added barang:", data);
+    console.log("Added kategori:", data);
     return data;
   } catch (error) {
-    console.error("Error adding barang:", error);
+    console.error("Error adding kategori:", error);
   }
 }
 
-export async function updateBarang(barangData) {
+export async function updateKategori(kategoriData) {
   try {
-    const res = await fetch("http://localhost:3000/api/barang", {
+    const res = await fetch("http://localhost:3000/api/kategori", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(barangData),
+      body: JSON.stringify(kategoriData),
     });
-    if (!res.ok) throw new Error("Failed to update barang");
+    if (!res.ok) throw new Error("Failed to update kategori");
     const data = await res.json();
-    console.log("Updated barang:", data);
+    console.log("Updated kategori:", data);
     return data;
   } catch (error) {
-    console.error("Error updating barang:", error);
+    console.error("Error updating kategori:", error);
   }
 }
 
-export async function searchBarang(query) {
+export async function searchKategori(query) {
   try {
     const res = await fetch(
-      `http://localhost:3000/api/join/find/barang?${query}`
+      `http://localhost:3000/api/join/find/kategori?${query}`
     );
-    if (!res.ok) throw new Error("Failed to search barang");
+    if (!res.ok) throw new Error("Failed to search kategori");
     const data = await res.json();
     console.log("Search results:", data);
     return data;
@@ -83,17 +83,17 @@ export async function searchIDKategoriByName(namaKategori) {
 
 export async function generateNewID() {
   try {
-    const res = await fetch("http://localhost:3000/api/find/lastID/barang");
+    const res = await fetch("http://localhost:3000/api/find/lastID/kategori");
     if (!res.ok) throw new Error("Failed to fetch last ID");
     const data = await res.json();
     console.log("Last ID data:", data);
-    const lastID = data?.id_barang || "BRG000";
-    const newIDNumber = parseInt(lastID.replace("BRG", "")) + 1;
-    const newID = `BRG${newIDNumber.toString().padStart(3, "0")}`;
+    const lastID = data?.id_kategori || "KTG000";
+    const newIDNumber = parseInt(lastID.replace("KTG", "")) + 1;
+    const newID = `KTG${newIDNumber.toString().padStart(3, "0")}`;
     console.log("New ID generated:", newID);
     return newID;
   } catch (error) {
     console.error("Error fetching last ID:", error);
-    return "BRG100";
+    return "KTG100";
   }
 }

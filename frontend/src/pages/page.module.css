@@ -13,6 +13,7 @@
   display: flex;
   flex-direction: column;
   background-color: #cae2f9;
+  padding-bottom: 40px;
 }
 
 .product-page h1 {
@@ -50,6 +51,10 @@
   text-align: center;
 }
 
+.product-page thead th.biaya-head {
+  text-align: right;
+}
+
 .product-page thead th {
   background: #ffffff;
   color: #000;
@@ -70,6 +75,10 @@
 
 .product-page td {
   border-bottom: 1px solid #e2e8f0;
+}
+
+.product-page td.biaya {
+  text-align: right;
 }
 
 .product-page tfoot td {
@@ -113,6 +122,7 @@
 
 .product-page td button {
   margin-bottom: 4px;
+  margin-right: 4px;
 }
 
 @media (max-width: 700px) {
@@ -152,6 +162,7 @@
 
 .search-bar input[type="date"] {
   color: #4a5568;
+  flex: 1;
 }
 
 .search-input {
@@ -186,6 +197,18 @@
   box-shadow: 0 0 10px 2px rgba(49, 130, 206, 0.3);
 }
 
+.search-input input[type="date"] {
+  padding-right: 15px;
+  width: auto;
+  min-width: 330px;
+}
+
+.searchLaporanDate input[type="date"] {
+  padding-right: 15px;
+  width: auto;
+  min-width: 270px;
+}
+
 .product-page .add-button {
   cursor: pointer;
   display: flex;
@@ -211,14 +234,16 @@
   color: #22543d;
 }
 
-.non-aktif {
+.non-aktif,
+.proses {
   background-color: rgb(253, 225, 225);
   border: 1px solid #c53030;
   color: rgb(179, 34, 34);
 }
 
 .status.aktif::before,
-.status.non-aktif::before {
+.status.non-aktif::before,
+.status.proses::before {
   content: "";
   width: 10px;
   height: 10px;
@@ -231,6 +256,24 @@
   background: #38a169; /* hijau */
 }
 
-.status.non-aktif::before {
+.status.non-aktif::before,
+.status.proses::before {
   background: #e53e3e; /* merah */
+}
+
+.logout-button {
+  background: #3182ce;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  height: 35px;
+  padding: 0 16px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.logout-button:hover {
+  background: #225ea8;
 }

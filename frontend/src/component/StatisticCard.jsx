@@ -7,11 +7,10 @@ export default function SearchInput({
   onChange,
   placeholder,
   onKeyDown,
-  className = "",
 }) {
   return (
-    <div className={`${styles["search-input"]} ${className || ""}`}>
-      {Icon && <Icon size={20} className={styles["search-icon"]} />}
+    <div className={styles["statistic-card"]}>
+      {Icon && <Icon size={20} className={styles["statistic-icon"]} />}
       <input
         type={type}
         placeholder={placeholder}

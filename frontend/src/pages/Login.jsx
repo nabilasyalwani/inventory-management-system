@@ -23,6 +23,7 @@ export default function Login() {
       const result = await res.json();
       console.log("Login successful:", result);
       localStorage.setItem("isLogedIn", true);
+      localStorage.setItem("user", JSON.stringify(result));
       setLoginData({ username: "", password: "" });
       navigate("/");
     } catch (error) {

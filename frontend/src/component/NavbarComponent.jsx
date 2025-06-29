@@ -1,11 +1,13 @@
 // NavbarComponent.jsx
 import { Navbar, Container, Nav, NavDropdown } from "react-bootstrap";
 import { NavLink, useNavigate } from "react-router-dom";
+import styles from "../pages/page.module.css";
 
 const NavbarComponent = () => {
   const navigate = useNavigate();
   const handleLogout = () => {
     localStorage.removeItem("isLogedIn");
+    localStorage.removeItem("user");
     navigate("/login");
   };
   const isLoggedIn = localStorage.getItem("isLogedIn");
@@ -25,6 +27,9 @@ const NavbarComponent = () => {
                 </Nav.Link>
                 <Nav.Link as={NavLink} to="/productPage">
                   Barang
+                </Nav.Link>
+                <Nav.Link as={NavLink} to="/kategori">
+                  Kategori
                 </Nav.Link>
                 <NavDropdown title="Transaksi" id="basic-nav-dropdown">
                   <NavDropdown.Item as={NavLink} to="/barangMasuk">
@@ -59,7 +64,11 @@ const NavbarComponent = () => {
                 </Nav.Link>
               </Nav>
               <div>
-                <button onClick={handleLogout}>Logout</button>
+                <button
+                  className={styles["logout-button"]}
+                  onClick={handleLogout}>
+                  Logout
+                </button>
               </div>
             </>
           ) : (

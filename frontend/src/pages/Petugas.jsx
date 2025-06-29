@@ -9,23 +9,13 @@ import {
   generateNewID,
   searchPetugas,
 } from "../api/petugas";
-import { TABLE_HEADER, PetugasFields } from "../data/PetugasFields";
+import {
+  TABLE_HEADER,
+  PetugasFields,
+  EMPTY_FORM_DATA,
+  EMPTY_UPDATE_DATA,
+} from "../data/PetugasFields";
 import styles from "./page.module.css";
-
-const EMPTY_FORM_DATA = {
-  id_petugas: "",
-  nama_petugas: "",
-  username: "",
-  password: "",
-  status: "",
-};
-
-const EMPTY_UPDATE_DATA = {
-  id_petugas: "",
-  nama_petugas: "",
-  username: "",
-  status: "",
-};
 
 export default function Petugas() {
   const [petugas, setpetugas] = useState([]);
@@ -184,7 +174,6 @@ export default function Petugas() {
                   }}>
                   <SquarePen size={20} />
                 </button>
-                {/* <button onClick={() => handleDeletepetugas(item.id_petugas)} style={{ marginLeft: "6px", backgroundColor: "#e53e3e", color: "white" }}>Delete</button> */}
               </td>
             </tr>
           ))}

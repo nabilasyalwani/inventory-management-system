@@ -1,33 +1,32 @@
 import React, { useState, useEffect } from "react";
-import { Search, SquarePen, Trash2, CirclePlus } from "lucide-react";
 import { Modal, Button, Form } from "react-bootstrap";
+import { Search, SquarePen, Trash2, CirclePlus } from "lucide-react";
 import SearchInput from "../component/SearchInput";
 import {
-  fetchDistributor,
-  addDistributor,
-  updateDistributor,
+  fetchKategori,
+  addKategori,
+  updateKategori,
   generateNewID,
-  searchDistributor,
-} from "../api/distributor";
+  searchKategori,
+} from "../api/kategori";
 import {
   TABLE_HEADER,
-  DistributorFields,
+  KategoriFields,
   EMPTY_FORM_DATA,
-  EMPTY_UPDATE_DATA,
-} from "../data/DistributorFields";
+} from "../data/KategoriFields";
 import styles from "./page.module.css";
 
-export default function DistributorPage() {
-  const [distributor, setDistributor] = useState([]);
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
+export default function Kategori() {
+  const [kategori, setkategori] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
 
-  const [searchIDDistributor, setSearchIDDistributor] = useState("");
-  const [searchNamaDistributor, setSearchNamaDistributor] = useState("");
-  const [searchStatus, setSearchStatus] = useState("");
+  const [searchIDkategori, setSearchIDkategori] = useState("");
+  const [searchNamaKategori, setSearchNamaKategori] = useState("");
+  const [searchNoRak, setSearchNoRak] = useState("");
 
+  const [formData, setFormData] = useState(EMPTY_FORM_DATA);
   const [updateData, setUpdateData] = useState(EMPTY_FORM_DATA);
-  const [formData, setFormData] = useState(EMPTY_UPDATE_DATA);
 
   useEffect(() => {
     handleFetch();
@@ -39,8 +38,8 @@ export default function DistributorPage() {
 
   const handleFetch = async () => {
     try {
-      const data = await fetchDistributor();
-      setDistributor(data);
+      const data = await fetchKategori();
+      setkategori(data);
     } catch (error) {
       console.error(error);
     }
@@ -48,18 +47,16 @@ export default function DistributorPage() {
 
   const handleSearch = async () => {
     let query = [];
-    if (searchIDDistributor)
-      query.push(`id_distributor=${searchIDDistributor}`);
-    if (searchNamaDistributor)
-      query.push(`nama_distributor=${searchNamaDistributor}`);
-    if (searchStatus) query.push(`status=${searchStatus}`);
+    if (searchIDkategori) query.push(`id_kategori=${searchIDkategori}`);
+    if (searchNamaKategori) query.push(`nama_kategori=${searchNamaKategori}`);
+    if (searchNoRak) query.push(`no_rak=${searchNoRak}`);
 
     if (query.length === 0) return handleFetch();
     const queryString = query.join("&");
 
     try {
-      const data = await searchDistributor(queryString);
-      setDistributor(data);
+      const data = await searchKategori(queryString);
+      setkategori(data);
     } catch (error) {
       console.error(error);
     }
@@ -68,15 +65,15 @@ export default function DistributorPage() {
   const handleNewID = async () => {
     try {
       const newID = await generateNewID();
-      setFormData((prev) => ({ ...prev, id_distributor: newID }));
+      setFormData((prev) => ({ ...prev, id_kategori: newID }));
     } catch (error) {
       console.error(error);
     }
   };
 
-  const handleAddDistributor = async () => {
+  const handleAddkategori = async () => {
     try {
-      await addDistributor(formData);
+      await addKategori(formData);
       handleFetch();
       setShowModal(false);
       setFormData(EMPTY_FORM_DATA);
@@ -85,12 +82,12 @@ export default function DistributorPage() {
     }
   };
 
-  const handleUpdateDistributor = async () => {
+  const handleUpdatekategori = async () => {
     try {
-      await updateDistributor(updateData);
+      await updateKategori(updateData);
       handleFetch();
       setShowUpdateModal(false);
-      setUpdateData(EMPTY_UPDATE_DATA);
+      setUpdateData(EMPTY_FORM_DATA);
     } catch (error) {
       console.error(error);
     }
@@ -104,30 +101,30 @@ export default function DistributorPage() {
 
   return (
     <div className={styles["product-page"]}>
-      <h1>Distributor</h1>
-      <p>Halaman ini menampilkan dan mengelola data distributor.</p>
+      <h1>Kategori</h1>
+      <p>Halaman ini menampilkan dan mengelola data kategori.</p>
 
       <div className={styles["search-bar"]}>
         <SearchInput
           icon={Search}
-          value={searchIDDistributor}
+          value={searchIDkategori}
           onKeyDown={handleSearchKeyDown}
-          onChange={(e) => setSearchIDDistributor(e.target.value)}
-          placeholder="ID Distributor"
+          onChange={(e) => setSearchIDkategori(e.target.value)}
+          placeholder="ID Kategori"
         />
         <SearchInput
           icon={Search}
-          value={searchNamaDistributor}
-          onChange={(e) => setSearchNamaDistributor(e.target.value)}
+          value={searchNamaKategori}
+          onChange={(e) => setSearchNamaKategori(e.target.value)}
           onKeyDown={handleSearchKeyDown}
-          placeholder="Nama Distributor"
+          placeholder="Nama Kategori"
         />
         <SearchInput
           icon={Search}
-          value={searchStatus}
-          onChange={(e) => setSearchStatus(e.target.value)}
+          value={searchNoRak}
+          onChange={(e) => setSearchNoRak(e.target.value)}
           onKeyDown={handleSearchKeyDown}
-          placeholder="Status "
+          placeholder="No Rak "
         />
         <button
           className={styles["add-button"]}
@@ -136,39 +133,20 @@ export default function DistributorPage() {
           Tambah
         </button>
       </div>
-
       <table>
         <thead>
           <tr>
             {TABLE_HEADER.map((header) => (
-              <th
-                key={header}
-                className={
-                  styles[`${header === "Status" ? "status-head" : ""}`]
-                }>
-                {header}
-              </th>
+              <th key={header}>{header}</th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {distributor.map((item) => (
-            <tr key={item.id_distributor}>
-              <td>{item.id_distributor}</td>
-              <td>
-                <div
-                  className={[
-                    styles.status,
-                    item.status === "aktif"
-                      ? styles.aktif
-                      : styles["non-aktif"],
-                  ].join(" ")}>
-                  {item.status}
-                </div>
-              </td>
-              <td>{item.nama_distributor}</td>
-              <td>{item.alamat_distributor}</td>
-              <td>{item.no_telp_distributor}</td>
+          {kategori.map((item) => (
+            <tr key={item.id_kategori}>
+              <td>{item.id_kategori}</td>
+              <td>{item.nama_kategori}</td>
+              <td>{item.no_rak}</td>
               <td>
                 <button
                   onClick={() => {
@@ -182,15 +160,14 @@ export default function DistributorPage() {
           ))}
         </tbody>
       </table>
-
       {/* Modal Tambah */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
-        <Modal.Header closeButton className="p-4 pb-3 m-2">
-          <Modal.Title>Tambah Distributor</Modal.Title>
+        <Modal.Header className="p-4 pb-3 m-2" closeButton>
+          <Modal.Title>Tambah kategori</Modal.Title>
         </Modal.Header>
         <Modal.Body className="p-4 pt-2 pb-2 m-2">
           <Form>
-            {DistributorFields.map((field) => (
+            {KategoriFields.map((field) => (
               <Form.Group className="mb-3" key={field.name}>
                 <Form.Label>{field.label}</Form.Label>
                 <Form.Control
@@ -199,7 +176,7 @@ export default function DistributorPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, [field.name]: e.target.value })
                   }
-                  disabled={field.name === "id_distributor"}
+                  disabled={field.name === "id_kategori"}
                 />
               </Form.Group>
             ))}
@@ -209,7 +186,7 @@ export default function DistributorPage() {
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Batal
           </Button>
-          <Button variant="primary" onClick={handleAddDistributor}>
+          <Button variant="primary" onClick={handleAddkategori}>
             Simpan
           </Button>
         </Modal.Footer>
@@ -221,11 +198,11 @@ export default function DistributorPage() {
         onHide={() => setShowUpdateModal(false)}
         centered>
         <Modal.Header className="p-4 pb-3 m-2" closeButton>
-          <Modal.Title>Update Distributor</Modal.Title>
+          <Modal.Title>Update Kategori</Modal.Title>
         </Modal.Header>
         <Modal.Body className="p-4 pt-2 pb-2 m-2">
           <Form>
-            {DistributorFields.map((field) => (
+            {KategoriFields.map((field) => (
               <Form.Group className="mb-3" key={field.name}>
                 <Form.Label>{field.label}</Form.Label>
                 <Form.Control
@@ -241,24 +218,13 @@ export default function DistributorPage() {
                 />
               </Form.Group>
             ))}
-            <Form.Group>
-              <Form.Label>Status</Form.Label>
-              <Form.Select
-                value={updateData.status}
-                onChange={(e) =>
-                  setUpdateData({ ...updateData, status: e.target.value })
-                }>
-                <option value="aktif">Aktif</option>
-                <option value="nonaktif">Non-Aktif</option>
-              </Form.Select>
-            </Form.Group>
           </Form>
         </Modal.Body>
-        <Modal.Footer>
+        <Modal.Footer className="p-3 m-2">
           <Button variant="secondary" onClick={() => setShowUpdateModal(false)}>
             Batal
           </Button>
-          <Button variant="primary" onClick={handleUpdateDistributor}>
+          <Button variant="primary" onClick={handleUpdatekategori}>
             Simpan
           </Button>
         </Modal.Footer>

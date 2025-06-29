@@ -74,53 +74,42 @@ const createItemInJoinTable = (req, res) => {
     return res.status(400).json({ error: "Table name and data are required" });
   }
   let baseQuery = "";
-  if (tableName === "transaksi_barang_masuk") {
-    baseQuery = `INSERT INTO barang_masuk (id_barang_masuk, id_petugas, id_supplier, tanggal_masuk) VALUES (?, ?, ?, ?); 
-    INSERT INTO detail_barang_masuk (id_detail_masuk, id_barang_masuk, id_barang, jumlah) VALUES (?, ?, ?, ?)`;
+  if (tableName === "transaksi_masuk") {
+    baseQuery = `CALL tambah_transaksi_masuk (?, ?, ?, ?, ?, ?);`;
     values = [
-      data.id_barang_masuk,
       data.id_petugas,
       data.id_supplier,
-      data.tanggal_masuk,
-      data.id_detail_masuk,
-      data.id_barang_masuk,
       data.id_barang,
-      data.jumlah,
-    ];
-  } else if (tableName === "transaksi_barang_keluar") {
-    baseQuery = `INSERT INTO barang_keluar (id_barang_keluar, id_petugas, id_distributor, tanggal_keluar) VALUES (?, ?, ?, ?); 
-    INSERT INTO detail_barang_keluar (id_detail_keluar, id_barang_keluar, id_barang, jumlah) VALUES (?, ?, ?, ?)`;
-    values = [
-      data.id_barang_keluar,
-      data.id_petugas,
-      data.id_distributor,
-      data.tanggal_keluar,
-      data.id_detail_keluar,
-      data.id_barang_keluar,
-      data.id_barang,
-      data.jumlah,
-    ];
-  } else if (tableName === "service_detail_service") {
-    baseQuery = `INSERT INTO service (id_service, id_distributor, id_petugas, jenis_service, keterangan, tanggal_masuk) VALUES (?, ?, ?, ?, ?, ?); 
-    INSERT INTO detail_service (id_detail_service, id_service, nama_barang) VALUES (?, ?, ?)`;
-    values = [
-      data.id_service,
-      data.id_distributor,
-      data.id_petugas,
-      data.jenis_service,
-      data.keterangan,
-      data.tanggal_masuk,
-      data.id_detail_service,
-      data.id_service,
       data.nama_barang,
+      data.jumlah,
+      data.tanggal_masuk,
+    ];
+  } else if (tableName === "transaksi_keluar") {
+    baseQuery = `CALL tambah_transaksi_keluar (?, ?, ?, ?, ?, ?);`;
+    values = [
+      data.id_petugas,
+      data.id_distributor,
+      data.id_barang,
+      data.nama_barang,
+      data.jumlah,
+      data.tanggal_keluar,
+    ];
+  } else if (tableName === "service") {
+    baseQuery = `INSERT INTO ${tableName} (id_petugas,id_kategori, jenis_barang, nama_barang, tanggal_masuk, keterangan) VALUES (?, ?, ?, ?, ?, ?)`;
+    values = [
+      data.id_petugas,
+      data.id_kategori,
+      data.jenis_barang,
+      data.nama_barang,
+      data.tanggal_masuk,
+      data.keterangan,
     ];
   } else if (tableName === "barang") {
-    baseQuery = `INSERT INTO ${tableName} (id_barang, nama_barang, stok, satuan, harga_beli, harga_jual, id_kategori) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    baseQuery = `INSERT INTO ${tableName} (id_barang, nama_barang, stok, harga_beli, harga_jual, id_kategori) VALUES (?, ?, ?, ?, ?, ?)`;
     values = [
       data.id_barang,
       data.nama_barang,
       data.stok,
-      data.satuan,
       data.harga_beli,
       data.harga_jual,
       data.id_kategori,
@@ -138,18 +127,8 @@ const createItemInJoinTable = (req, res) => {
       data.status || "aktif",
     ];
   } else if (tableName === "kategori") {
-    baseQuery = `INSERT INTO ${tableName} (id_kategori, jenis_barang, no_rak) VALUES (?, ?)`;
-    values = [data.id_kategori, data.jenis_barang, data.no_rak];
-  } else if (tableName === "service") {
-    baseQuery = `INSERT INTO ${tableName} (id_petugas,id_kategori, jenis_barang, nama_barang, tanggal_masuk, keterangan) VALUES (?, ?, ?, ?, ?, ?)`;
-    values = [
-      data.id_petugas,
-      data.id_kategori,
-      data.jenis_barang,
-      data.nama_barang,
-      data.tanggal_masuk,
-      data.keterangan,
-    ];
+    baseQuery = `INSERT INTO ${tableName} (id_kategori, nama_kategori, no_rak) VALUES (?, ?, ?)`;
+    values = [data.id_kategori, data.nama_kategori, data.no_rak];
   } else {
     return res.status(400).json({ error: "Invalid table name" });
   }
@@ -298,33 +277,24 @@ const deleteItemInJoinTable = (req, res) => {
 };
 
 const getJoinedTable = (req, res) => {
-  // console.log("Fetching joined table data");
   const tableName = req.params.tableName;
   if (!tableName) {
     return res.status(400).json({ error: "Table name is required" });
   }
   let baseQuery = "";
-  if (tableName === "transaksi_barang_masuk") {
-    baseQuery = `SELECT b.nama_barang, k.jenis_barang, dbm.id_detail_masuk, bm.id_barang_masuk, bm.id_petugas, bm.id_supplier, bm.tanggal_masuk, b.id_barang, b.id_kategori, b.harga_beli, dbm.jumlah, b.harga_beli * dbm.jumlah AS total_harga FROM detail_barang_masuk AS dbm 
-      INNER JOIN barang_masuk AS bm ON dbm.id_barang_masuk = bm.id_barang_masuk
-      INNER JOIN barang AS b ON b.id_barang = dbm.id_barang
-      INNER JOIN kategori AS k ON b.id_kategori = k.id_kategori;
-      
-      SELECT SUM(b.harga_beli * dbm.jumlah) AS grand_total
-      FROM detail_barang_masuk AS dbm
-      INNER JOIN barang AS b ON b.id_barang = dbm.id_barang;`;
-  } else if (tableName === "transaksi_barang_keluar") {
-    baseQuery = `SELECT b.nama_barang, k.jenis_barang, dbk.id_detail_keluar, bk.id_barang_keluar, bk.id_petugas, bk.id_distributor, bk.tanggal_keluar, b.id_barang, b.id_kategori, b.harga_jual, dbk.jumlah, b.harga_jual * dbk.jumlah AS total_harga FROM detail_barang_keluar AS dbk 
-      INNER JOIN barang_keluar AS bk ON dbk.id_barang_keluar = bk.id_barang_keluar
-      INNER JOIN barang AS b ON b.id_barang = dbk.id_barang
-      INNER JOIN kategori AS k ON b.id_kategori = k.id_kategori;
-      
-      SELECT SUM(b.harga_jual * dbk.jumlah) AS grand_total, SUM(HitungLabaItem(dbk.jumlah, b.harga_jual, b.harga_beli)) AS total_laba
-      FROM detail_barang_keluar AS dbk
-      INNER JOIN barang AS b ON b.id_barang = dbk.id_barang;`;
-  } else if (tableName === "service_detail_service") {
-    baseQuery = `SELECT ds.id_detail_service, ds.id_service, s.id_distributor, s.id_petugas, s.jenis_service, ds.nama_barang, s.keterangan, s.tanggal_masuk, ds.tanggal_selesai, ds.durasi_service, ds.biaya_service, s.status FROM service AS s
-      INNER JOIN detail_service AS ds ON ds.id_service = s.id_service`;
+  if (tableName === "laporan_transaksi_masuk") {
+    baseQuery = `SELECT tm.tanggal_masuk, s.nama_supplier, b.nama_barang, k.nama_kategori, tm.jumlah, b.harga_beli, (tm.jumlah * b.harga_beli) AS Total_harga FROM transaksi_masuk AS tm
+      JOIN supplier AS s ON s.id_supplier = tm.id_supplier
+      JOIN barang AS b ON b.id_barang = tm.id_barang
+      JOIN kategori AS k ON k.id_kategori = b.id_kategori;`;
+  } else if (tableName === "laporan_transaksi_keluar") {
+    baseQuery = `SELECT tk.tanggal_keluar, d.nama_distributor, b.nama_barang, k.nama_kategori, tk.jumlah, b.harga_jual, (tk.jumlah * b.harga_jual) AS Total_harga FROM transaksi_keluar AS tk
+      JOIN distributor AS d ON d.id_distributor = tk.id_distributor
+      JOIN barang AS b ON b.id_barang = tk.id_barang
+      JOIN kategori AS k ON k.id_kategori = b.id_kategori;`;
+  } else if (tableName === "laporan_service") {
+    baseQuery = `SELECT s.*, p.nama_petugas FROM service AS s
+      JOIN petugas AS p ON p.id_petugas = s.id_petugas;`;
   } else {
     return res.status(400).json({ error: "Invalid table name" });
   }
@@ -391,21 +361,19 @@ const findItemByAttr = (req, res) => {
     : "";
 
   let baseQuery = "";
-  if (tableName === "transaksi_barang_masuk") {
-    baseQuery = `SELECT b.nama_barang, k.jenis_barang, dbm.id_detail_masuk, bm.id_barang_masuk, bm.id_petugas, bm.id_supplier, bm.tanggal_masuk, b.id_barang, b.id_kategori, b.harga_beli, dbm.jumlah, 
-      b.harga_beli * dbm.jumlah AS total_harga, SUM(b.harga_beli * dbm.jumlah) OVER () AS grand_total FROM detail_barang_masuk AS dbm 
-      INNER JOIN barang_masuk AS bm ON dbm.id_barang_masuk = bm.id_barang_masuk
-      INNER JOIN barang AS b ON b.id_barang = dbm.id_barang
-      INNER JOIN kategori AS k ON b.id_kategori = k.id_kategori`;
-  } else if (tableName === "transaksi_barang_keluar") {
-    baseQuery = `SELECT b.nama_barang, k.jenis_barang, dbk.id_detail_keluar, bk.id_barang_keluar, bk.id_petugas, bk.id_distributor, bk.tanggal_keluar, b.id_barang, b.id_kategori, b.harga_jual, dbk.jumlah, 
-      b.harga_jual * dbk.jumlah AS total_harga, SUM(b.harga_jual * dbk.jumlah) OVER () AS grand_total, SUM(HitungLabaItem(dbk.jumlah, b.harga_jual, b.harga_beli)) OVER () AS total_laba FROM detail_barang_keluar AS dbk 
-      INNER JOIN barang_keluar AS bk ON dbk.id_barang_keluar = bk.id_barang_keluar
-      INNER JOIN barang AS b ON b.id_barang = dbk.id_barang
-      INNER JOIN kategori AS k ON b.id_kategori = k.id_kategori`;
-  } else if (tableName === "service_detail_service") {
-    baseQuery = `SELECT ds.id_detail_service, ds.id_service, s.id_distributor, s.id_petugas, s.jenis_service, ds.nama_barang, s.keterangan, s.tanggal_masuk, ds.tanggal_selesai, ds.durasi_service, ds.biaya_service, s.status FROM service AS s
-      INNER JOIN detail_service AS ds ON ds.id_service = s.id_service`;
+  if (tableName === "laporan_transaksi_masuk") {
+    baseQuery = `SELECT tm.tanggal_masuk, s.nama_supplier, b.nama_barang, k.nama_kategori, tm.jumlah, b.harga_beli, (tm.jumlah * b.harga_beli) AS Total_harga FROM transaksi_masuk AS tm
+      JOIN supplier AS s ON s.id_supplier = tm.id_supplier
+      JOIN barang AS b ON b.id_barang = tm.id_barang
+      JOIN kategori AS k ON k.id_kategori = b.id_kategori`;
+  } else if (tableName === "laporan_transaksi_keluar") {
+    baseQuery = `SELECT tk.tanggal_keluar, d.nama_distributor, b.nama_barang, k.nama_kategori, tk.jumlah, b.harga_jual, (tk.jumlah * b.harga_jual) AS Total_harga FROM transaksi_keluar AS tk
+      JOIN distributor AS d ON d.id_distributor = tk.id_distributor
+      JOIN barang AS b ON b.id_barang = tk.id_barang
+      JOIN kategori AS k ON k.id_kategori = b.id_kategori`;
+  } else if (tableName === "laporan_service") {
+    baseQuery = `SELECT s.*, p.nama_petugas FROM service AS s
+      JOIN petugas AS p ON p.id_petugas = s.id_petugas`;
   } else if (
     tableName === "barang" ||
     tableName === "supplier" ||

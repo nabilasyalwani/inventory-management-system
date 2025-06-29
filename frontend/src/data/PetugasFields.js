@@ -6,6 +6,21 @@ export const TABLE_HEADER = [
   "Aksi",
 ];
 
+export const EMPTY_FORM_DATA = {
+  id_petugas: "",
+  nama_petugas: "",
+  username: "",
+  password: "",
+  status: "",
+};
+
+export const EMPTY_UPDATE_DATA = {
+  id_petugas: "",
+  nama_petugas: "",
+  username: "",
+  status: "",
+};
+
 export const PetugasFields = [
   {
     label: "ID Petugas",
